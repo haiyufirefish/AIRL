@@ -27,8 +27,8 @@ def addSamplelabel(ratingsamples):
     ratingsamples['label'] = (ratingsamples['rating']>3.5).astype(int)
     return ratingsamples
 
-ratings = pd.read_csv(r"C:\Users\LiHaiyu\PycharmProjects\AIRL\data\ratings.csv")
-movies = pd.read_csv(r"C:\Users\LiHaiyu\PycharmProjects\AIRL\data\movies.csv")
+ratings = pd.read_csv(r"..\data\ratings.csv")
+movies = pd.read_csv(r"..\data\movies.csv")
 
 ratings = addSamplelabel(ratings)
 ratings = ratings[ratings['label'] == 1]
@@ -55,9 +55,9 @@ model = als.fit(ratings_emb)
 
 model.userFactors.select("id", "features") \
            .toPandas() \
-           .to_csv(r"C:\Users\LiHaiyu\PycharmProjects\AIRL\Embedding\user_embedding.csv", index=False)
+           .to_csv(r"user_embedding.csv", index=False)
 
 model.itemFactors.select("id", "features") \
            .toPandas() \
-           .to_csv(r"C:\Users\LiHaiyu\PycharmProjects\AIRL\Embedding\item_embedding.csv", index=False)
+           .to_csv(r"item_embedding.csv", index=False)
 
