@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from .utils import build_mlp, reparameterize, evaluate_lop_pi
+from utils import build_mlp, reparameterize, evaluate_lop_pi
 
 
 class StateIndependentPolicy(nn.Module):

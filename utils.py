@@ -2,7 +2,8 @@ import math
 import torch
 from torch import nn
 import tqdm
-
+import numpy as np
+from buffer import Buffer
 
 def build_mlp(input_dim, output_dim, hidden_units=[64, 64],
               hidden_activation=nn.Tanh(), output_activation=None):
@@ -41,7 +42,7 @@ def evaluate_lop_pi(means, log_stds, actions):
     noises = (atanh(actions) - means) / (log_stds.exp() + 1e-8)
     return calculate_log_pi(log_stds, noises, actions)
 
-from .buffer import Buffer
+
 
 
 def soft_update(target, source, tau):
