@@ -43,8 +43,6 @@ def evaluate_lop_pi(means, log_stds, actions):
     return calculate_log_pi(log_stds, noises, actions)
 
 
-
-
 def soft_update(target, source, tau):
     for t, s in zip(target.parameters(), source.parameters()):
         t.data.mul_(1.0 - tau)
@@ -107,3 +105,12 @@ def collect_demo(env, algo, buffer_size, device, std, p_rand, seed=0):
     print(f'Mean return of the expert is {total_return / num_episodes}')
     return buffer
 
+def soft_update(target, source, tau):
+    for target_param, param in zip(target.parameters(), source.parameters()):
+        target_param.data.copy_(
+            target_param.data * (1.0 - tau) + param.data * tau
+        )
+
+def hard_update(target, source):
+    for target_param, param in zip(target.parameters(), source.parameters()):
+            target_param.data.copy_(param.data)

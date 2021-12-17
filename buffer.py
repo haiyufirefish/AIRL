@@ -79,9 +79,9 @@ class RolloutBuffer:
         self.total_size = mix * buffer_size
 
         self.states = torch.empty(
-            (self.total_size, *state_shape), dtype=torch.float, device=device)
+            (self.total_size, state_shape), dtype=torch.float, device=device)
         self.actions = torch.empty(
-            (self.total_size, *action_shape), dtype=torch.float, device=device)
+            (self.total_size, action_shape), dtype=torch.float, device=device)
         self.rewards = torch.empty(
             (self.total_size, 1), dtype=torch.float, device=device)
         self.dones = torch.empty(
@@ -89,7 +89,7 @@ class RolloutBuffer:
         self.log_pis = torch.empty(
             (self.total_size, 1), dtype=torch.float, device=device)
         self.next_states = torch.empty(
-            (self.total_size, *state_shape), dtype=torch.float, device=device)
+            (self.total_size, state_shape), dtype=torch.float, device=device)
 
     def append(self, state, action, reward, done, log_pi, next_state):
         self.states[self._p].copy_(torch.from_numpy(state))
