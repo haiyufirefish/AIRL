@@ -6,6 +6,7 @@ from base import Algorithm
 from buffer import RolloutBuffer
 from network import Actor,Critic
 from utils import soft_update,hard_update
+from replay_buffer import PriorityExperienceReplay
 
 
 def calculate_gae(values, rewards, dones, next_values, gamma, lambd):
@@ -25,20 +26,32 @@ def calculate_gae(values, rewards, dones, next_values, gamma, lambd):
 class DDPG(Algorithm):
 
     def __init__(self, state_shape, action_shape, device, seed, gamma=0.995,
-                 rollout_length=2048, mix_buffer=20, lr_actor=3e-4,
+                 memory_size=1000000, mix_buffer=20, lr_actor=3e-4,
                  lr_critic=3e-4, units_actor=(64, 64), units_critic=(64, 64),
                  epoch_ddpg=10, clip_eps=0.2, lambd=0.97,tau = 0.001, coef_ent=0.0,
                  max_grad_norm=10.0):
         super().__init__(state_shape, action_shape, device, seed, gamma)
 
         # Rollout buffer. 2 state, 1 action,1 reward
-        self.buffer = RolloutBuffer(
-            buffer_size=rollout_length,
-            state_shape=state_shape,
-            action_shape=action_shape,
-            device=device,
-            mix=mix_buffer
-        )
+        # self.buffer = RolloutBuffer(
+        #     buffer_size=rollout_length,
+        #     state_shape=state_shape,
+        #     action_shape=action_shape,
+        #     device=device,
+        #     mix=mix_buffer
+        # )
+        self.criterion = nn.MSELoss()
+        self.learning_steps_ddpg = 0
+        self.memory_size = memory_size
+        self.epoch_ddpg = epoch_ddpg
+        self.clip_eps = clip_eps
+        self.lambd = lambd
+        self.coef_ent = coef_ent
+        self.tau = tau
+        self.max_grad_norm = max_grad_norm
+
+        self.buffer = PriorityExperienceReplay(self.memory_size,embedding_dim=100,device = device)
+        self.epsilon_for_priority = 1e-6
         # Actor. network input s, output a
         # self.actor = StateIndependentPolicy(
         #     state_shape=state_shape,
@@ -46,8 +59,10 @@ class DDPG(Algorithm):
         #     hidden_units=units_actor,
         #     hidden_activation=nn.Tanh()
         # ).to(device)
+
+        print(state_shape," state shape")
         self.actor = Actor(state_shape,action_shape,hidden1=units_actor[0],hidden2=units_actor[1],init_w=0.3).to(device)
-        self.actor_target = Actor(state_shape,action_shape,hidden1=units_actor[0],hidden2=units_actor[1],init_w=0.3).to(device)
+        self.actor_target = Actor(state_shape,action_shape,hidden1=units_critic[0],hidden2=units_critic[1],init_w=0.3).to(device)
         # Critic. network input [s,a],output x
         # self.critic = StateFunction(
         #     state_shape=state_shape,
@@ -59,15 +74,7 @@ class DDPG(Algorithm):
         self.optim_actor = Adam(self.actor.parameters(), lr=lr_actor)
         self.optim_critic = Adam(self.critic.parameters(), lr=lr_critic)
 
-        self.criterion = nn.MSELoss()
-        self.learning_steps_ddpg = 0
-        self.rollout_length = rollout_length
-        self.epoch_ddpg = epoch_ddpg
-        self.clip_eps = clip_eps
-        self.lambd = lambd
-        self.coef_ent = coef_ent
-        self.tau = tau
-        self.max_grad_norm = max_grad_norm
+
 
     def is_update(self, step):
         return step % self.rollout_length == 0
@@ -76,11 +83,11 @@ class DDPG(Algorithm):
         t += 1
 
         action = self.exploit(state)
-        log_pi = 0
+        #log_pi = 0
         next_state, reward, done, _ = env.step(action)
-        mask = False if t == env._max_episode_steps else done
+        #mask = False if t == env._max_episode_steps else done
 
-        self.buffer.append(state, action, reward, mask, log_pi, next_state)
+        self.buffer.append(state, action, reward,  next_state,done)
 
         if done:
             t = 0
@@ -96,12 +103,12 @@ class DDPG(Algorithm):
 
     def update(self, writer):
         self.learning_steps += 1
-        states, actions, rewards, dones, log_pis, next_states = \
-            self.buffer.get()
+        states, actions, rewards, next_states,dones, weight_batch, index_batch = \
+            self.buffer.sample()
         self.update_ddpg(
-            states, actions, rewards, dones, log_pis, next_states, writer)
+            states, actions, rewards, next_states,dones,  writer)
 
-    def update_ddpg(self, states, actions, rewards, dones, log_pis, next_states,
+    def update_ddpg(self, states, actions, rewards, dones,  next_states,
                    writer):
         with torch.no_grad():
             values = self.critic(states,actions)
@@ -131,7 +138,7 @@ class DDPG(Algorithm):
 
         # if self.learning_steps_ddpg % self.epoch_ddpg == 0:
         #     writer.add_scalar(
-        #         'loss/critic', loss_critic.item(), self.learning_steps)
+        #         'loss/critic', loss_critic.item(), self.learning_steps_ddpg)
 
     def update_actor(self, states, actions, writer):
 

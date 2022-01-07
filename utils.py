@@ -4,6 +4,16 @@ from torch import nn
 import tqdm
 import numpy as np
 from buffer import Buffer
+from itertools import islice
+
+def take(n, iterable):
+    "Return first n items of the iterable as a list"
+    return list(islice(iterable, n))
+
+def addSamplelabel(ratingsamples):
+    # if rating > 3.5 label 1 as recommend, 0 as not recommend.
+    ratingsamples['label'] = (ratingsamples['rating']>3.5).astype(int)
+    return ratingsamples
 
 def build_mlp(input_dim, output_dim, hidden_units=[64, 64],
               hidden_activation=nn.Tanh(), output_activation=None):

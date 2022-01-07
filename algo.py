@@ -1,6 +1,8 @@
 from .airl import AIRL
+from .ddpg import DDPG
 
 
 ALGOS = {
-    'airl': AIRL
+    'airl': AIRL,
+    'DDPG': DDPG
 }

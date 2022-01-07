@@ -12,11 +12,11 @@ class Trainer:
 
         # Env to collect samples.
         self.env = env
-        self.env.seed(seed)
+        #self.env.seed(seed)
 
         # Env for evaluation.
         self.env_test = env_test
-        self.env_test.seed(2**31-seed)
+        #self.env_test.seed(2**31-seed)
 
         self.algo = algo
         self.log_dir = log_dir
@@ -42,7 +42,7 @@ class Trainer:
         state = self.env.reset()
 
         for step in range(1, self.num_steps + 1):
-            self.env.render()
+
             # Pass to the algorithm to update state and episode timestep.
             state, t = self.algo.step(self.env, state, t, step)
 
