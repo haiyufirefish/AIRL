@@ -87,7 +87,7 @@ class DDPG(Algorithm):
         action = np.transpose(action,(1,0))
         next_state, reward, done, _ = env.step(action)
         #mask = False if t == env._max_episode_steps else done
-
+        print("current reward: ",reward)
         self.buffer.append(state, action, reward,  next_state,done)
 
         if done:
@@ -153,22 +153,22 @@ class DDPG(Algorithm):
     def save_models(self, output):
         torch.save(
             self.actor.state_dict(),
-            '{}/ddpg_actor.pkl'.format(output)
+            '{}/ddpg_actor.pth'.format(output)
         )
         torch.save(
             self.critic.state_dict(),
-            '{}/ddpg_critic.pkl'.format(output)
+            '{}/ddpg_critic.pth'.format(output)
         )
 
     def load_weights(self, output):
         if output is None: return
 
         self.actor.load_state_dict(
-            torch.load('{}/ddpg_actor.pkl'.format(output))
+            torch.load('{}/ddpg_actor.pth'.format(output))
         )
 
         self.critic.load_state_dict(
-            torch.load('{}/ddpg_critic.pkl'.format(output))
+            torch.load('{}/ddpg_critic.pth'.format(output))
         )
 ###########################################################################
 

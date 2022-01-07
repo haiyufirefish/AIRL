@@ -2,7 +2,7 @@ import os
 from time import time, sleep
 from datetime import timedelta
 from torch.utils.tensorboard import SummaryWriter
-
+import numpy as np
 
 class Trainer:
 
@@ -43,6 +43,7 @@ class Trainer:
 
         for step in range(1, self.num_steps + 1):
 
+            print("current epislon: ",step)
             # Pass to the algorithm to update state and episode timestep.
             state, t = self.algo.step(self.env, state, t, step)
             state = state.float()
@@ -53,8 +54,11 @@ class Trainer:
             # Evaluate regularly.
             if step % self.eval_interval == 0:
                 self.evaluate(step)
+                path = os.path.join(self.model_dir, f'step_{step}').replace("\\","/")
+                if not os.path.exists(path):
+                    os.makedirs(path)
                 self.algo.save_models(
-                    os.path.join(self.model_dir, f'step{step}'))
+                    path)
 
         # Wait for the logging to be finished.
         sleep(10)
@@ -63,13 +67,18 @@ class Trainer:
         mean_return = 0.0
 
         for _ in range(self.num_eval_episodes):
-            state = self.env_test.reset()
+            state = self.env_test.reset().float()
             episode_return = 0.0
             done = False
 
             while (not done):
                 action = self.algo.exploit(state)
-                state, reward, done, _ = self.env_test.step(action)
+                # log_pi = 0
+                action = np.expand_dims(action, axis=1)
+                action = np.transpose(action, (1, 0))
+                next_state, reward, done, _ = self.env_test.step(action)
+                #state, reward, done, _ = self.env_test.step(action)
+
                 episode_return += reward
 
             mean_return += episode_return / self.num_eval_episodes
