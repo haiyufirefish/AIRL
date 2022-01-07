@@ -60,7 +60,6 @@ class DDPG(Algorithm):
         #     hidden_activation=nn.Tanh()
         # ).to(device)
 
-        print(state_shape," state shape")
         self.actor = Actor(state_shape,action_shape,hidden1=units_actor[0],hidden2=units_actor[1],init_w=0.3).to(device)
         self.actor_target = Actor(state_shape,action_shape,hidden1=units_critic[0],hidden2=units_critic[1],init_w=0.3).to(device)
         # Critic. network input [s,a],output x
@@ -77,13 +76,15 @@ class DDPG(Algorithm):
 
 
     def is_update(self, step):
-        return step % self.rollout_length == 0
+        return step % self.memory_size == 0
 
     def step(self, env, state, t, step):
         t += 1
 
         action = self.exploit(state)
         #log_pi = 0
+        action = np.expand_dims(action,axis=1)
+        action = np.transpose(action,(1,0))
         next_state, reward, done, _ = env.step(action)
         #mask = False if t == env._max_episode_steps else done
 

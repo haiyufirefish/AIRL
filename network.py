@@ -15,7 +15,7 @@ class Actor(nn.Module):
     def __init__(self, nb_states, nb_actions, hidden1=400, hidden2=300, init_w=3e-3):
         super(Actor, self).__init__()
 
-        self.fc1 = nn.Linear(nb_states[0], hidden1)
+        self.fc1 = nn.Linear(nb_states[1], hidden1)
         self.fc2 = nn.Linear(hidden1, hidden2)
         self.fc3 = nn.Linear(hidden2, nb_actions[1])
         self.relu = nn.ReLU()
@@ -28,6 +28,7 @@ class Actor(nn.Module):
         self.fc3.weight.data.uniform_(-init_w, init_w)
 
     def forward(self, x):
+
         out = self.fc1(x)
         out = self.relu(out)
         out = self.fc2(out)

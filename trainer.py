@@ -39,13 +39,13 @@ class Trainer:
         # Episode's timestep.
         t = 0
         # Initialize the environment.
-        state = self.env.reset()
+        state = self.env.reset().float()
 
         for step in range(1, self.num_steps + 1):
 
             # Pass to the algorithm to update state and episode timestep.
             state, t = self.algo.step(self.env, state, t, step)
-
+            state = state.float()
             # Update the algorithm whenever ready.
             if self.algo.is_update(step):
                 self.algo.update(self.writer)

@@ -31,10 +31,22 @@ print(c1.__dict__)
 # c.x = 'foo'
 import torch.nn as nn
 import torch
+import pandas as pd
+import numpy as np
+# m = nn.Linear(300,64)
+# input = torch.randn(1,300)
+# output = m(input)
+# output = output.float()
+# print(output.size())
+#==============================================================
+dfl = pd.DataFrame(np.random.randn(5, 4),
+                   columns=list('ABCD'),
+                   index=pd.date_range('20130101', periods=5))
 
+list_ = dfl['A'].tolist()
+list_.append(3)
+list_.append(4)
+s_ = set([3,4])
+s = list(set(list_) - s_ )
 
-m = nn.Linear(300,64)
-input = torch.randn(300,)
-output = m(input)
-print(output.size())
 
