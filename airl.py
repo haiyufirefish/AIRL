@@ -3,8 +3,8 @@ from torch import nn
 import torch.nn.functional as F
 from torch.optim import Adam
 
-from .ppo import PPO
-from .disc import AIRLDiscrim
+from ppo import PPO
+from disc import AIRLDiscrim
 
 
 class AIRL(PPO):

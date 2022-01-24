@@ -3,11 +3,11 @@ import torch.nn.functional as F
 from torch import nn
 from torch.optim import Adam
 
-from .ddpg import DDPG
-from .disc import AIRLDiscrim
+from ddpg import DDPG
+from disc import AIRLDiscrim
 
 
-class AIRL(DDPG):
+class AIRL_DDPG(DDPG):
 
     def __init__(self, buffer_exp,state_shape, action_shape, device, seed, gamma=0.995, memory_size=1000000, mix_buffer=20,batch_size = 64,
                  lr_actor=3e-4, lr_critic=3e-4,lr_disc=3e-4, units_actor=(64, 64), units_critic=(64, 64), units_disc_r=(100, 100), units_disc_v=(100, 100),

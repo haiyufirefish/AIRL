@@ -34,7 +34,13 @@ class Buffer(SerializedBuffer):
         self._p = 0
         self.buffer_size = buffer_size
         self.device = device
-
+        '''
+                    state : (300,), 
+                    rewards : (1,), 
+                    actions : (100,),              
+                    dones : (1,)
+                    next_state : (300,) 
+        '''
         self.states = torch.empty(
             (buffer_size, *state_shape), dtype=torch.float, device=device)
         self.actions = torch.empty(
@@ -47,11 +53,11 @@ class Buffer(SerializedBuffer):
             (buffer_size, *state_shape), dtype=torch.float, device=device)
 
     def append(self, state, action, reward, done, next_state):
-        self.states[self._p].copy_(torch.from_numpy(state))
+        self.states[self._p].copy_(state)
         self.actions[self._p].copy_(torch.from_numpy(action))
         self.rewards[self._p] = float(reward)
         self.dones[self._p] = float(done)
-        self.next_states[self._p].copy_(torch.from_numpy(next_state))
+        self.next_states[self._p].copy_(next_state)
 
         self._p = (self._p + 1) % self.buffer_size
         self._n = min(self._n + 1, self.buffer_size)

@@ -2,10 +2,10 @@ import torch
 from torch import nn
 from torch.optim import Adam
 
-from .base import Algorithm
-from .buffer import RolloutBuffer
-from .policy import StateIndependentPolicy
-from .state import StateFunction
+from base import Algorithm
+from buffer import RolloutBuffer
+from policy import StateIndependentPolicy
+from state import StateFunction
 
 def calculate_gae(values, rewards, dones, next_values, gamma, lambd):
     # Calculate TD errors.

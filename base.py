@@ -24,9 +24,10 @@ class Algorithm(ABC):
         return action.cpu().numpy()[0], log_pi.item()
 
     def exploit(self, state):
-        #state = torch.tensor(state, dtype=torch.float, device=self.device)
+        state = torch.tensor(state, dtype=torch.float, device=self.device)
         with torch.no_grad():
             #action = self.actor(state.unsqueeze_(0))#
+
             action = self.actor(state)
         return action.cpu().numpy()[0]
 

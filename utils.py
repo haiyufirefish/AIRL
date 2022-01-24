@@ -1,7 +1,7 @@
 import math
 import torch
 from torch import nn
-import tqdm
+from tqdm import tqdm
 import numpy as np
 from buffer import Buffer
 from itertools import islice
@@ -69,16 +69,16 @@ def add_random_noise(action, std):
     return action.clip(-1.0, 1.0)
 
 
-def collect_demo(env, algo, buffer_size, device, std, p_rand, seed=0):
-    env.seed(seed)
+def collect_demo(env, algo, buffer_size, device, std = 0.0, p_rand = 0.0, seed=0):
+    #env.seed = seed#
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
     buffer = Buffer(
         buffer_size=buffer_size,
-        state_shape=env.observation_space.shape,
-        action_shape=env.action_space.shape,
+        state_shape=(1, 300),
+        action_shape=env.action_space,
         device=device
     )
 
@@ -97,7 +97,7 @@ def collect_demo(env, algo, buffer_size, device, std, p_rand, seed=0):
         else:
             action = algo.exploit(state)
             action = add_random_noise(action, std)
-
+#next_state, reward, self.done, self.recommended_items
         next_state, reward, done, _ = env.step(action)
         mask = False if t == env._max_episode_steps else done
         buffer.append(state, action, reward, mask, next_state)

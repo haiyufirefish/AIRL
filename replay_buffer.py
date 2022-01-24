@@ -9,7 +9,7 @@ class PriorityExperienceReplay(object):
     apply PER
     '''
 
-    def __init__(self, buffer_size, embedding_dim,device = 'cpu'):
+    def __init__(self, buffer_size, embedding_dim,device):
         self.buffer_size = buffer_size
         self.crt_idx = 0
         self.is_full = False

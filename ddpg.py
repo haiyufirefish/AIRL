@@ -5,7 +5,7 @@ from torch.optim import Adam
 from base import Algorithm
 from buffer import RolloutBuffer
 from network import Actor,Critic
-from utils import soft_update,hard_update
+from utils import soft_update,hard_update, disable_gradient
 from replay_buffer import PriorityExperienceReplay
 
 
@@ -171,7 +171,13 @@ class DDPG(Algorithm):
             torch.load('{}/ddpg_critic.pth'.format(output))
         )
 ###########################################################################
-
+class DDPGExpert(DDPG):
+    def __init__(self,state_shape, action_shape, device, path,
+                 units_actor=(64, 64)):
+        self.actor = Actor(state_shape,action_shape,hidden1=units_actor[0],hidden2=units_actor[1],init_w=0.3).to(device)
+        self.actor.load_state_dict(torch.load(path))
+        disable_gradient(self.actor)
+        self.device = device
 #############################testing#############################################
 import gym
 import numpy as np

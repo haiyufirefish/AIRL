@@ -3,17 +3,20 @@ import torch
 
 class OfflineEnv(object):
 
-    def __init__(self, users_dict, users_history_lens, movies_id_to_movies, state_representation,
+    def __init__(self, users_dict, users_history_lens, items_num_list,movies_id_to_movies, state_representation,
                  state_size,embedding_loader, fix_user_id=None):
 
         self.users_dict = users_dict
         self.users_history_lens = users_history_lens
         self.items_id_to_name = movies_id_to_movies
+        self.items_num_list = items_num_list
         # embedding files and state representation
         self.embedding_loader = embedding_loader
         self.state_representation = state_representation
         # 10 state size
         self.state_size = state_size
+        print(state_size)
+        self.action_space = (1,100)
         # 4800++ users
         self.available_users = self._generate_available_users()
 
@@ -27,6 +30,8 @@ class OfflineEnv(object):
         self.done = False
         self.recommended_items = set(self.items)
         self.done_count = 3000
+        #np.random.seed(0)
+        self._max_episode_steps = 10**3
 
     def _generate_available_users(self):
         available_users = []
@@ -67,6 +72,7 @@ class OfflineEnv(object):
 
     def step(self, action, top_k=False):
         action = self.recommend_item(action, self.recommended_items, top_k)
+        #print(action.shape," action s")
         reward = -0.5
 
         if top_k:
@@ -97,7 +103,7 @@ class OfflineEnv(object):
             self.done = True
         # next_state, reward, done, _
 
-        user_eb = self.embedding_loader.get_user_em(ids = self.user)
+        user_eb = self.embedding_loader.get_user_em(id = self.user)
 
         items_eb = self.embedding_loader.get_item_em(item_ids=self.items)
         next_state = self.state_representation([np.expand_dims(items_eb, axis=0), np.expand_dims(user_eb, axis=0)])
@@ -113,17 +119,22 @@ class OfflineEnv(object):
         return items_names
 
     def recommend_item(self, action, recommended_items, top_k=False, items_ids=None):
+        #
+
+        # print(type(action), "tp")
         if items_ids == None:
                         #3000+ items_num
-            items_ids = np.array(list(set(i for i in range(self.items_num)) - recommended_items))
+            items_ids = np.array(list(set(self.items_num_list) - recommended_items))
 
         items_ebs = self.embedding_loader.get_item_em(items_ids)
         # items_ebs = self.m_embedding_network.get_layer('movie_embedding')(items_ids)
-        action = torch.transpose(action, 0,1)
 
+        #action = np.transpose(action, (1,0))
+        #(100,1)
         if top_k:
-            item_indice = np.argsort(torch.transpose(torch.dot(items_ebs, action), 1,0))[0][-top_k:]
+            item_indice = np.argsort(np.transpose(np.dot(items_ebs, action), (1,0)))[0][-top_k:]
             return items_ids[item_indice]
         else:
-            item_idx = np.argmax(torch.dot(items_ebs, action))
+
+            item_idx = np.argmax(np.dot(items_ebs, action))
             return items_ids[item_idx]

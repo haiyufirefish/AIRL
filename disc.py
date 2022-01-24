@@ -33,8 +33,9 @@ class AIRLDiscrim(nn.Module):
                  hidden_units_r=(64, 64),
                  hidden_units_v=(64, 64),
                  hidden_activation_r=nn.ReLU(inplace=True),
-                 hidden_activation_v=nn.ReLU(inplace=True)):
+                 hidden_activation_v=nn.ReLU(inplace=True), clamp_magnitude=10.0):
         super().__init__()
+        self.clamp_magnitude = clamp_magnitude
 
         self.g = build_mlp(
             input_dim=state_shape[0],
