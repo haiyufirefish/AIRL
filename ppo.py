@@ -87,10 +87,10 @@ class PPO(Algorithm):
         self.learning_steps += 1
         states, actions, rewards, dones, log_pis, next_states = \
             self.buffer.get()
-        self.update_ppo(
+        self.update_policy(
             states, actions, rewards, dones, log_pis, next_states, writer)
 
-    def update_ppo(self, states, actions, rewards, dones, log_pis, next_states,
+    def update_policy(self, states, actions, rewards, dones, log_pis, next_states,
                    writer):
         with torch.no_grad():
             values = self.critic(states)
@@ -140,5 +140,35 @@ class PPO(Algorithm):
             writer.add_scalar(
                 'stats/entropy', entropy.item(), self.learning_steps)
 
-    def save_models(self, save_dir):
-        pass
+    def save_models(self, output):
+        torch.save(
+            self.actor.state_dict(),
+            '{}/ppo_actor.pth'.format(output)
+        )
+        torch.save(
+            self.critic.state_dict(),
+            '{}/ppo_critic.pth'.format(output)
+        )
+
+    @property
+    def networks(self):
+        return [
+            self.actor,
+            self.critic,
+            self.actor_target,
+            self.critic_target,
+        ]
+
+class PPOExpert(PPO):
+    def __init__(self,state_shape, action_shape, device, path,
+                 units_actor=(64, 64)):
+        self.actor = StateIndependentPolicy(
+            state_shape=state_shape,
+            action_shape=action_shape,
+            hidden_units=units_actor,
+            hidden_activation=nn.Tanh()
+        ).to(device)
+        #self.actor = Actor(state_shape,action_shape,hidden1=units_actor[0],hidden2=units_actor[1],init_w=0.3).to(device)
+        self.actor.load_state_dict(torch.load(path))
+        #disable_gradient(self.actor)
+        self.device = device

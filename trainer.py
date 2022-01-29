@@ -3,13 +3,15 @@ from time import time, sleep
 from datetime import timedelta
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
+from tqdm import tqdm
+
 
 class Trainer:
 
     def __init__(self, env, env_test, algo, log_dir, seed=0, num_steps=10**5,
                  eval_interval=10**3, num_eval_episodes=5):
         super().__init__()
-
+        np.random.seed(seed)
         # Env to collect samples.
         self.env = env
         #self.env.seed(seed)
@@ -41,7 +43,7 @@ class Trainer:
         # Initialize the environment.
         state = self.env.reset().float()
 
-        for step in range(1, self.num_steps + 1):
+        for step in tqdm(range(1, self.num_steps + 1)):
 
             print("current epislon: ",step)
             # Pass to the algorithm to update state and episode timestep.
@@ -49,6 +51,7 @@ class Trainer:
             state = state.float()
             # Update the algorithm whenever ready.
             if self.algo.is_update(step):
+                print(step)
                 self.algo.update(self.writer)
 
             # Evaluate regularly.
@@ -63,6 +66,28 @@ class Trainer:
         # Wait for the logging to be finished.
         sleep(10)
 
+    def train_imitation(self):
+        self.start_time = time()
+        # Episode's timestep.
+        t = 0
+        start_epoch = 0
+
+        # Initialize the environment.
+        state = self.env.reset().float()
+
+        for step in tqdm(range(start_epoch,self.num_steps)):
+            state, t = self.algo.policy.step(self.env, state, t, step)
+            state = state.float()
+            if self.algo.is_update(step):
+                self.algo.update(self.writer)
+            # Evaluate regularly.
+            if step % self.eval_interval == 0:
+                self.evaluate(step)
+                path = os.path.join(self.model_dir, f'step_{step}').replace("\\","/")
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                self.algo.save_models(
+                    path)
     def evaluate(self, step):
         mean_return = 0.0
 

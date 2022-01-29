@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import abc
 import os
 import numpy as np
 import torch
@@ -31,9 +32,23 @@ class Algorithm(ABC):
             action = self.actor(state)
         return action.cpu().numpy()[0]
 
-    @abstractmethod
-    def is_update(self, step):
+    def evaluate(self,epoch):
         pass
+
+    def get_eval_statistics(self):
+        return {}
+
+    def get_snapshot(self):
+        return {}
+
+    @property
+    @abc.abstractmethod
+    def networks(self):
+        pass
+
+    # @abstractmethod
+    # def is_update(self, step):
+    #     pass
 
     @abstractmethod
     def update(self):
@@ -43,3 +58,7 @@ class Algorithm(ABC):
     def save_models(self, save_dir):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
+
+    @abstractmethod
+    def load_weights(self, path):
+        pass

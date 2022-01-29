@@ -11,8 +11,8 @@ class StateIndependentPolicy(nn.Module):
         super().__init__()
 
         self.net = build_mlp(
-            input_dim=state_shape[0],
-            output_dim=action_shape[0],
+            input_dim=state_shape[1],
+            output_dim=action_shape[1],
             hidden_units=hidden_units,
             hidden_activation=hidden_activation
         )
@@ -35,8 +35,8 @@ class StateDependentPolicy(nn.Module):
         super().__init__()
 
         self.net = build_mlp(
-            input_dim=state_shape[0],
-            output_dim=2 * action_shape[0],
+            input_dim=state_shape[1],
+            output_dim=2 * action_shape[1],
             hidden_units=hidden_units,
             hidden_activation=hidden_activation
         )
@@ -47,3 +47,7 @@ class StateDependentPolicy(nn.Module):
     def sample(self, states):
         means, log_stds = self.net(states).chunk(2, dim=-1)
         return reparameterize(means, log_stds.clamp_(-20, 2))
+
+# if __name__ == '__main__':
+#     sdp = StateDependentPolicy((1,300),(1,100))
+#     sip = StateIndependentPolicy((1,300),(1,100))

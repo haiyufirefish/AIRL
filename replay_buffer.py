@@ -9,26 +9,27 @@ class PriorityExperienceReplay(object):
     apply PER
     '''
 
-    def __init__(self, buffer_size, embedding_dim,device):
+    def __init__(self, buffer_size,state_shape,action_shape,device):
         self.buffer_size = buffer_size
         self.crt_idx = 0
         self.is_full = False
 
         '''
-            state : (300,), 
-            next_state : (300,) 
-            actions : (100,), 
+            state : (1,300), 
+            next_state : (1,300) 
+            actions : (1,100), 
             rewards : (1,), 
             dones : (1,)
         '''
         #self.states = np.zeros((buffer_size, 3 * embedding_dim), dtype=np.float32)
         self.states = torch.empty(
-            (self.buffer_size, embedding_dim*3), dtype=torch.float, device=device )
-        self.actions = np.zeros((buffer_size, embedding_dim), dtype=np.float32)
-        self.rewards = np.zeros((buffer_size), dtype=np.float32)
+            (self.buffer_size,*state_shape), dtype=torch.float, device=device )
+        self.actions = torch.empty((buffer_size, *action_shape),dtype=torch.float, device=device )
+        self.rewards = torch.empty((buffer_size,1), dtype=torch.float, device=device )
         self.next_states = torch.empty(
-            (self.buffer_size, embedding_dim*3), dtype=torch.float, device=device)
-        self.dones = np.zeros(buffer_size, np.bool)
+            (self.buffer_size, *state_shape), dtype=torch.float, device=device)
+        self.dones = torch.empty(
+            (buffer_size, 1), dtype=torch.float, device=device)
 
         self.sum_tree = SumTree(buffer_size)
         self.min_tree = MinTree(buffer_size)
@@ -83,8 +84,10 @@ class PriorityExperienceReplay(object):
         batch_next_states = self.next_states[rd_idx]
         batch_dones = self.dones[rd_idx]
 
-        return batch_states, batch_actions, batch_rewards, batch_next_states, batch_dones, np.array(
-            weight_batch), index_batch
+        return batch_states, batch_actions, batch_rewards, batch_dones, batch_next_states
+
+        # return batch_states, batch_actions, batch_rewards, batch_dones, batch_next_states,np.array(
+        #     weight_batch), index_batch
 
     def update_priority(self, priority, index):
         self.sum_tree.update_prioirty(priority ** self.alpha, index)

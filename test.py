@@ -86,5 +86,5 @@ from tqdm import tqdm
 
 buffer_size = 1000
 
-for _ in tqdm(range(1,buffer_size+1)):
-    print("hello, ",_)
+state_shape  = (1,300)
+print((3,*state_shape))

@@ -50,6 +50,7 @@ from state_representation import AveStateRepresentation
 
 def main():
     STATE_SIZE = 10
+    SEED = 0
     ratings_df = pd.read_csv("./data/ratings.csv")
     movies_df = pd.read_csv("./data/movies.csv")
     ratings_df = addSamplelabel(ratings_df)
@@ -83,12 +84,12 @@ def main():
     train_users_history_lens = {key:value for key,value in[x for x in users_history_lens.items()][0:train_users_num]}
 
     Avg_representation = AveStateRepresentation(100)
-    env = OfflineEnv(train_users_dict, train_users_history_lens,items_num_list ,movies_id_to_movies,Avg_representation, STATE_SIZE,Emb_loader)
-
+    env = OfflineEnv(train_users_dict, train_users_history_lens,items_num_list ,movies_id_to_movies,Avg_representation, STATE_SIZE,Emb_loader,seed = SEED)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     algo = DDPGExpert(
         state_shape=(1, 300),
         action_shape=(1, 100),
-        device=torch.device( "cpu"),
+        device = device,
         path='./model/step_1000/ddpg_actor.pth'
     )
 
@@ -96,13 +97,13 @@ def main():
         env=env,
         algo=algo,
         buffer_size=10**2,
-        device=torch.device("cpu"),
+        device=device,
     )
 
     buffer.save(os.path.join(
         'buffers',
         "movie_env",
-        f'size{10**2}_std{0}_prand{0}.pth'
+        f'ddpg_expert_trajectories_size{10**2}.pth'
     ))
 
 

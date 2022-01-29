@@ -18,13 +18,8 @@ class SerializedBuffer:
 
     def sample(self, batch_size):
         idxes = np.random.randint(low=0, high=self._n, size=batch_size)
-        return (
-            self.states[idxes],
-            self.actions[idxes],
-            self.rewards[idxes],
-            self.dones[idxes],
-            self.next_states[idxes]
-        )
+        return self.states[idxes],self.actions[idxes],self.rewards[idxes],self.dones[idxes],self.next_states[idxes]
+
 
 
 class Buffer(SerializedBuffer):

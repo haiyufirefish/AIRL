@@ -96,6 +96,8 @@ def collect_demo(env, algo, buffer_size, device, std = 0.0, p_rand = 0.0, seed=0
             action = env.action_space.sample()
         else:
             action = algo.exploit(state)
+            action = np.expand_dims(action, axis=1)
+            action = np.transpose(action, (1, 0))
             action = add_random_noise(action, std)
 #next_state, reward, self.done, self.recommended_items
         next_state, reward, done, _ = env.step(action)
@@ -124,3 +126,21 @@ def soft_update(target, source, tau):
 def hard_update(target, source):
     for target_param, param in zip(target.parameters(), source.parameters()):
             target_param.data.copy_(param.data)
+
+def fanin_init(size, fanin=None):
+    fanin = fanin or size[0]
+    v = 1. / np.sqrt(fanin)
+    return torch.Tensor(size).uniform_(-v, v)
+
+class Dict(dict):
+    def __init__(self,config,section_name,location = False):
+        super(Dict,self).__init__()
+        self.initialize(config, section_name,location)
+    def initialize(self, config, section_name,location):
+        for key,value in config.items(section_name):
+            if location :
+                self[key] = value
+            else:
+                self[key] = eval(value)
+    def __getattr__(self,val):
+        return self[val]

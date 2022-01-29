@@ -4,8 +4,8 @@ import torch
 class OfflineEnv(object):
 
     def __init__(self, users_dict, users_history_lens, items_num_list,movies_id_to_movies, state_representation,
-                 state_size,embedding_loader, fix_user_id=None):
-
+                 state_size,embedding_loader, seed = 0,fix_user_id=None):
+        np.random.seed(seed)
         self.users_dict = users_dict
         self.users_history_lens = users_history_lens
         self.items_id_to_name = movies_id_to_movies
@@ -15,7 +15,7 @@ class OfflineEnv(object):
         self.state_representation = state_representation
         # 10 state size
         self.state_size = state_size
-        print(state_size)
+
         self.action_space = (1,100)
         # 4800++ users
         self.available_users = self._generate_available_users()
@@ -129,7 +129,7 @@ class OfflineEnv(object):
         items_ebs = self.embedding_loader.get_item_em(items_ids)
         # items_ebs = self.m_embedding_network.get_layer('movie_embedding')(items_ids)
 
-        #action = np.transpose(action, (1,0))
+        action = np.transpose(action, (1,0))
         #(100,1)
         if top_k:
             item_indice = np.argsort(np.transpose(np.dot(items_ebs, action), (1,0)))[0][-top_k:]

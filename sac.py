@@ -160,6 +160,15 @@ class SAC(Algorithm):
             os.path.join(save_dir, 'actor.pth')
         )
 
+    @property
+    def networks(self):
+        return [
+            self.actor,
+            self.critic,
+            self.actor_target,
+            self.critic_target,
+        ]
+
 
 class SACExpert(SAC):
 
