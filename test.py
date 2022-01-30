@@ -88,3 +88,14 @@ buffer_size = 1000
 
 state_shape  = (1,300)
 print((3,*state_shape))
+
+t1 = torch.randn(128, 1,300)
+t2 = torch.randn(128, 1,100)
+
+t = torch.cat((t1,t2),dim = 2)
+print(t.size())
+
+t3 = torch.randn(64,1,400)
+t4 = torch.randn(64,1,400)
+t5 = torch.cat((t3,t4),dim=0)
+print(t5.size())

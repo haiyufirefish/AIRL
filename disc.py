@@ -111,7 +111,5 @@ class MLPDisc(nn.Module):
         return output
 
 if __name__ == '__main__':
-    # Disc = MLPDisc((1,300))
-    # print(Disc.model)
-    AIDIS = AIRLDiscrim((300,1),gamma = 0.998)
-    print(AIDIS)
+    Disc = MLPDisc((1,300))
+    print(Disc.model)

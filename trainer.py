@@ -51,7 +51,7 @@ class Trainer:
             state = state.float()
             # Update the algorithm whenever ready.
             if self.algo.is_update(step):
-                print(step)
+
                 self.algo.update(self.writer)
 
             # Evaluate regularly.
@@ -79,15 +79,16 @@ class Trainer:
             state, t = self.algo.policy.step(self.env, state, t, step)
             state = state.float()
             if self.algo.is_update(step):
+                print("step: ",step)
                 self.algo.update(self.writer)
             # Evaluate regularly.
-            if step % self.eval_interval == 0:
-                self.evaluate(step)
-                path = os.path.join(self.model_dir, f'step_{step}').replace("\\","/")
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                self.algo.save_models(
-                    path)
+            # if step % self.eval_interval == 0:
+            #     self.evaluate(step)
+            #     path = os.path.join(self.model_dir, f'step_{step}').replace("\\","/")
+            #     if not os.path.exists(path):
+            #         os.makedirs(path)
+            #     self.algo.save_models(
+            #         path)
     def evaluate(self, step):
         mean_return = 0.0
 

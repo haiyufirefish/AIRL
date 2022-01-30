@@ -25,11 +25,12 @@ class PPO(Algorithm):
 
     def __init__(self, state_shape, action_shape, device, seed, gamma=0.995,
                  rollout_length=2048, mix_buffer=20, lr_actor=3e-4,
-                 lr_critic=3e-4, units_actor=(64, 64), units_critic=(64, 64),
+                 lr_critic=3e-4, batch_size = 32,
+                 units_actor=(64, 64), units_critic=(64, 64),
                  epoch_ppo=10, clip_eps=0.2, lambd=0.97, coef_ent=0.0,
                  max_grad_norm=10.0):
         super().__init__(state_shape, action_shape, device, seed, gamma)
-
+        self.name = 'PPO'
         # Rollout buffer.
         self.buffer = RolloutBuffer(
             buffer_size=rollout_length,
@@ -75,7 +76,7 @@ class PPO(Algorithm):
         next_state, reward, done, _ = env.step(action)
         mask = False if t == env._max_episode_steps else done
 
-        self.buffer.append(state, action, reward, mask, log_pi, next_state)
+        self.buffer.append(state, action, reward, mask,  next_state,log_pi)
 
         if done:
             t = 0
