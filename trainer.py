@@ -9,7 +9,7 @@ from tqdm import tqdm
 class Trainer:
 
     def __init__(self, env, env_test, algo, log_dir, seed=0, num_steps=10**5,
-                 eval_interval=10**3, num_eval_episodes=5):
+                 eval_interval=10**3, num_eval_episodes=5,num_steps_before_train = 5000):
         super().__init__()
         np.random.seed(seed)
         # Env to collect samples.
@@ -34,6 +34,7 @@ class Trainer:
         self.num_steps = num_steps
         self.eval_interval = eval_interval
         self.num_eval_episodes = num_eval_episodes
+        self.num_steps_before_train = num_steps_before_train
 
     def train(self):
         # Time to start training.
@@ -73,11 +74,13 @@ class Trainer:
         start_epoch = 0
 
         # Initialize the environment.
-        state = self.env.reset().float()
-
+        state = self.env.reset()
+        # fill the buffer of policy
+        for step in tqdm(range(self.num_steps_before_train)):
+            state, t = self.algo.policy.step(self.env, state, t, step)
         for step in tqdm(range(start_epoch,self.num_steps)):
             state, t = self.algo.policy.step(self.env, state, t, step)
-            state = state.float()
+            #state = state.float()
             if self.algo.is_update(step):
                 print("step: ",step)
                 self.algo.update(self.writer)

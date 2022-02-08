@@ -31,6 +31,7 @@ class PPO(Algorithm):
                  max_grad_norm=10.0):
         super().__init__(state_shape, action_shape, device, seed, gamma)
         self.name = 'PPO'
+        self.batch_size = batch_size
         # Rollout buffer.
         self.buffer = RolloutBuffer(
             buffer_size=rollout_length,
@@ -150,7 +151,8 @@ class PPO(Algorithm):
             self.critic.state_dict(),
             '{}/ppo_critic.pth'.format(output)
         )
-
+    def load_weights(self,path):
+        pass
     @property
     def networks(self):
         return [

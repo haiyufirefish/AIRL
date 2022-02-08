@@ -3,11 +3,11 @@ import torch
 from torch import nn
 from torch.optim import Adam
 
-from .base import Algorithm
-from .buffer import Buffer
+from base import Algorithm
+from buffer import Buffer
 from utils import soft_update, disable_gradient
-from .policy import StateDependentPolicy
-from .value import TwinnedStateActionFunction
+from policy import StateDependentPolicy
+from value import TwinnedStateActionFunction
 
 
 class SAC(Algorithm):
@@ -72,10 +72,10 @@ class SAC(Algorithm):
     def step(self, env, state, t, step):
         t += 1
 
-        if step <= self.start_steps:
-            action = env.action_space.sample()
-        else:
-            action = self.explore(state)[0]
+        # if step <= self.start_steps:
+        #     action = env.action_space.sample()
+        # else:
+        action,_ = self.explore(state)
 
         next_state, reward, done, _ = env.step(action)
         mask = False if t == env._max_episode_steps else done
@@ -159,6 +159,9 @@ class SAC(Algorithm):
             self.actor.state_dict(),
             os.path.join(save_dir, 'actor.pth')
         )
+
+    def load_weights(self,path):
+        pass
 
     @property
     def networks(self):

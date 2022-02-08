@@ -34,11 +34,13 @@ ratings = addSamplelabel(ratings)
 ratings = ratings[ratings['label'] == 1]
 ratings.to_csv(r"ratings_embedding.csv",index = False)
 
-ratings_emb = spark.read.csv(
+data = spark.read.csv(
     r"ratings_embedding.csv",
     header=True,
     schema=customSchema
 )
+
+data.show(5)
 
 als = ALS(
     maxIter=5,
@@ -48,16 +50,17 @@ als = ALS(
     itemCol="movieId",
     ratingCol="rating",
     coldStartStrategy="drop")
+model = als.fit(data)
 
-# train
-model = als.fit(ratings_emb)
+# # train
 
-
-model.userFactors.select("id", "features") \
-           .toPandas() \
-           .to_csv(r"user_embedding.csv", index=False)
-
-model.itemFactors.select("id", "features") \
-           .toPandas() \
-           .to_csv(r"item_embedding.csv", index=False)
+#
+#
+# model.userFactors.select("id", "features") \
+#            .toPandas() \
+#            .to_csv(r"user_embedding.csv", index=False)
+#
+# model.itemFactors.select("id", "features") \
+#            .toPandas() \
+#            .to_csv(r"item_embedding.csv", index=False)
 

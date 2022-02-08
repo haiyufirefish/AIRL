@@ -34,23 +34,22 @@ import pandas as pd
 import torch
 
 
-ROOT_DIR = os.getcwd()
-DATA_DIR = os.path.join(ROOT_DIR, './data/ml-1m/')
-ratings_list = [i.strip().split("::") for i in open(os.path.join(DATA_DIR, 'ratings.dat'), 'r').readlines()]
-users_list = [i.strip().split("::") for i in open(os.path.join(DATA_DIR, 'users.dat'), 'r').readlines()]
-movies_list = [i.strip().split("::") for i in
-               open(os.path.join(DATA_DIR, 'movies.dat'), encoding='latin-1').readlines()]
-ratings = pd.DataFrame(ratings_list, columns=['userId', 'movieId', 'rating', 'timestamp'], dtype=np.uint32)
-movies = pd.DataFrame(movies_list, columns=['movieId', 'title', 'genres'])
-movies['movieId'] = movies['movieId'].apply(pd.to_numeric)
-ratings['rating'] = ratings['rating'].apply(pd.to_numeric)
-ratings['userId'] = ratings['userId'].apply(pd.to_numeric)
-users_df = pd.DataFrame(users_list, columns=['userId', 'gender', 'age', 'occupation', 'zip-code'])
+# ROOT_DIR = os.getcwd()
+# DATA_DIR = os.path.join(ROOT_DIR, './data/ml-1m/')
+# ratings_list = [i.strip().split("::") for i in open(os.path.join(DATA_DIR, 'ratings.dat'), 'r').readlines()]
+# users_list = [i.strip().split("::") for i in open(os.path.join(DATA_DIR, 'users.dat'), 'r').readlines()]
+# movies_list = [i.strip().split("::") for i in
+#                open(os.path.join(DATA_DIR, 'movies.dat'), encoding='latin-1').readlines()]
+# ratings = pd.DataFrame(ratings_list, columns=['userId', 'movieId', 'rating', 'timestamp'], dtype=np.uint32)
+# movies = pd.DataFrame(movies_list, columns=['movieId', 'title', 'genres'])
+# movies['movieId'] = movies['movieId'].apply(pd.to_numeric)
+# ratings['rating'] = ratings['rating'].apply(pd.to_numeric)
+# ratings['userId'] = ratings['userId'].apply(pd.to_numeric)
+# users_df = pd.DataFrame(users_list, columns=['userId', 'gender', 'age', 'occupation', 'zip-code'])
+#
+# (n, m), (X, y), (user_to_index, movie_to_index) = create_dataset(ratings)
 
-(n, m), (X, y), (user_to_index, movie_to_index) = create_dataset(ratings)
 
-print(movie_to_index[91])
-print(movie_to_index[92])
 # em_net = EmbeddingNet(
 #     n_users=n, n_movies=m,
 #     n_factors=100, hidden=[100, 200, 300],

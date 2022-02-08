@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from .utils import build_mlp
+from utils import build_mlp
 
 
 class StateFunction(nn.Module):

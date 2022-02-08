@@ -51,8 +51,9 @@ class DDPG(Algorithm):
 
         action = self.exploit(state)
        # action, log_pi = self.explore(state)
-        action = np.expand_dims(action,axis=1)
-        action = np.transpose(action,(1,0))
+        print(action.size())
+        # action = np.expand_dims(action,axis=1)
+        # action = np.transpose(action,(1,0))
         next_state, reward, done, _ = env.step(action)
         #mask = False if t == env._max_episode_steps else done
         print("current reward: ",reward)

@@ -80,6 +80,7 @@ def main():
         device=device,
         seed=SEED,
         policy=policy,
+        rollout_length=10,
         mode=mode,
         state_only=False
     )
@@ -92,9 +93,10 @@ def main():
         env_test=env,
         algo=algo,
         log_dir=log_dir,
-        num_steps=10**2,
+        seed=SEED,
+        num_steps=200,
         eval_interval=5,
-        seed=SEED
+        num_steps_before_train=50
     )
     trainer.train_imitation()
 

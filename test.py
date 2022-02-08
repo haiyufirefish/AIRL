@@ -84,18 +84,29 @@ from torch import optim
 # torch.save(model, path)
 from tqdm import tqdm
 
-buffer_size = 1000
+from tqdm import tqdm
+import timeit
 
-state_shape  = (1,300)
-print((3,*state_shape))
+# for _ in tqdm(range(10000)):
+# 	t1 = torch.randn(128,300).to(device)
+# 	t2 = torch.randn(300,128).to(device)
+#
+# 	t1.dot(t2)
+# 	outputs.append(t1)
 
-t1 = torch.randn(128, 1,300)
-t2 = torch.randn(128, 1,100)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-t = torch.cat((t1,t2),dim = 2)
-print(t.size())
 
-t3 = torch.randn(64,1,400)
-t4 = torch.randn(64,1,400)
-t5 = torch.cat((t3,t4),dim=0)
-print(t5.size())
+print(device)
+outputs = []
+start = timeit.default_timer()
+for _ in tqdm(range(10)):
+	t1 = torch.randn(10000,10000).to(device)
+	t2 = torch.randn(10000,10000).to(device)
+
+	t = torch.mul(t1, t2).to(device)
+	outputs.append(t)
+
+stop = timeit.default_timer()
+
+print('Time: ', stop - start)

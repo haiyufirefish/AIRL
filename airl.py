@@ -17,12 +17,13 @@ class AIRL(Algorithm):
     def __init__(self, buffer_exp, state_shape, action_shape, device, seed,policy,mode,
                  gamma=0.995,hid_act = 'relu',state_only=False, rollout_length=10000,batch_size=64, lr_disc=3e-4,
                  units_disc=100,disc_momentum = 0.0,use_grad_pen = False,grad_pen_weight=10,
-                 num_update_loops_per_train_call = 1,  num_disc_epoch = 50,
-                 num_policy_epoch = 50,policy_optim_batch_size_from_expert=0,
+                 num_update_loops_per_train_call = 1000,  num_disc_epoch = 1,
+                 num_policy_epoch = 1,policy_optim_batch_size_from_expert=0, eval_length = 1000,
                 clip_eps=0.2, lambd=0.97, max_grad_norm=10.0):
         assert mode in [
             "airl",
             "gail",
+            "gail2"
         ], "Invalid adversarial irl algorithm!"
         super().__init__(
             state_shape, action_shape, device, seed, gamma
@@ -63,6 +64,7 @@ class AIRL(Algorithm):
         self.batch_size = batch_size
         #self.epoch_disc = epoch_disc
         # evalute
+        self.eval_length = eval_length
         self.disc_eval_statistics = None
 
     def update(self, writer):
@@ -73,12 +75,14 @@ class AIRL(Algorithm):
         for _ in range(self.num_update_loops_per_train_call):
 
             for epoch in range(1,self.num_disc_epoch+1):
+                print("train disc: ", epoch)
                 self.learning_steps_disc += 1
                 self.update_disc(
                     epoch=epoch, writer=writer
                 )
         # Train policy
             for epoch in range(self.num_policy_epoch):
+                print("train policy: ", epoch)
                 self.policy.update(writer = writer)
 
     def update_disc(self, epoch, writer):
@@ -183,10 +187,14 @@ class AIRL(Algorithm):
         if self.mode == "airl":
             # compute log(D) - log(1-D) then just get the logits
             rewards = disc_logits
-        else:  # -log (1-D) > 0 #gail
+        elif self == 'gail':  # -log (1-D) > 0 #gail
             rewards = F.softplus(
-                disc_logits, beta=1
+                disc_logits, beta= 1
             )  # F.softplus(disc_logits, beta=-1)
+        else:# gail2
+            rewards = F.softplus(
+                disc_logits, beta=-1
+            )
         if self.policy.name == 'PPO':
             self.policy.update(states, actions, rewards, dones, log_pis, next_states)
         else:
@@ -212,6 +220,9 @@ class AIRL(Algorithm):
 
     def is_update(self, step):
         return step % self.rollout_length == 0
+
+    def is_eval(self,step):
+        return step % self.eval_length == 0
 
     def load_weights(self, path):
         if path is None: return

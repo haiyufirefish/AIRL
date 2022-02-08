@@ -1,15 +1,16 @@
 #from airl_ddpg import AIRL_DDPG
 from ddpg import DDPG,DDPGExpert
 from airl import AIRL
-#from sac import SAC,SACExpert
+from ppo import PPO
+from sac import SAC,SACExpert
 
 ALGOS = {
     #'airl': AIRL_DDPG,
     'airl':AIRL,
-    'DDPG': DDPG,
-    'DDPGExpert': DDPGExpert,
-    # 'PPO': PPO,
+    'ddpg': DDPG,
+    'ddpgexpert': DDPGExpert,
+     'ppo': PPO,
     # 'PPOExpert': PPOExpert,
-    #'SAC': SAC,
+     'sac': SAC,
     #'SACExpert':SACExpert
 }

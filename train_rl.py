@@ -5,6 +5,7 @@ import torch as torch
 import os
 
 from Embedding.embedding_net import EmbeddingNet
+from algo import ALGOS
 from ddpg import DDPG
 from envs.Offline_env import OfflineEnv
 from trainer import Trainer
@@ -100,10 +101,20 @@ if __name__ == '__main__':
 
     state = env.reset()
 
-    algo = DDPG(state_shape=(1,300),
-        action_shape=(1,100),
-        memory_size = 100,
-        device=device,seed=SEED)
+    # algo = DDPG(state_shape=(1,300),
+    #     action_shape=(1,100),
+    #     memory_size = 100,
+    #     device=device,seed=SEED)
+    mode = 'ppo'
+    algo = ALGOS[mode](
+        #buffer_exp=buffer_exp,
+        state_shape=(1,300),
+        action_shape=(1, 100),
+        device=device,
+        seed=SEED,
+        #policy=policy,
+        #rollout_length= 2048,
+    )
     #
     recommender = Trainer(env,env,algo,log_dir='./')
     #
