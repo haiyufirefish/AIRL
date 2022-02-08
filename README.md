@@ -14,10 +14,14 @@ You can install Python liblaries using `pip install -r requirements.txt`.
 
 [[2]](https://arxiv.org/abs/1707.06347) Schulman, John, et al. "Proximal policy optimization algorithms." arXiv preprint arXiv:1707.06347 (2017).
 
-[[3]](https://mofanpy.com/) machine learning of mofan
-[[4]](https://github.com/ku2482/gail-airl-ppo.pytorch) gail-airl-ppo.pytorch project by Toshiki Watanabe
-[[5]](https://github.com/backgom2357/Recommender_system_via_deep_RL) Deep Reinforcement Learning based Recommender System in Tensorflow by Young_Painter_L,kyunghoon-jung and pasus
-[[6]](https://www.bcs.tu-darmstadt.de/team_sos/koepplheinz_sos.en.jsp) Prof. Dr. Heinz Köppl
+[[3]](https://mofanpy.com/) machine learning of mofan.
+
+[[4]](https://github.com/ku2482/gail-airl-ppo.pytorch) gail-airl-ppo.pytorch project by Toshiki Watanabe.
+
+[[5]](https://github.com/backgom2357/Recommender_system_via_deep_RL) Deep Reinforcement Learning based Recommender System in Tensorflow by Young_Painter_L,kyunghoon-jung and pasus.
+
+[[6]](https://www.bcs.tu-darmstadt.de/team_sos/koepplheinz_sos.en.jsp) Prof. Dr. Heinz Köppl.
+
 [[7]](https://www.bcs.tu-darmstadt.de/team_sos/schultheismatthias_sos.en.jsp) Matthias Schultheis
 
 [[8]](https://arxiv.org/abs/1801.01290) Haarnoja, Tuomas, et al. "Soft actor-critic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor." arXiv preprint arXiv:1801.01290 (2018).
