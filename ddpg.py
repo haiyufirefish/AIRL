@@ -14,8 +14,7 @@ class DDPG(Algorithm):
     def __init__(self, state_shape, action_shape, device, seed, gamma=0.995,
                  memory_size=1000000, lr_actor=3e-4,embedding_dim = 100, batch_size = 32,
                  lr_critic=3e-4, units_actor=(64, 64), units_critic=(64, 64),
-                 epoch_ddpg=10, clip_eps=0.2, lambd=0.97,tau = 0.001, coef_ent=0.0,
-                 max_grad_norm=10.0):
+                 epoch_ddpg = 100,max_episode_num = 8000, lambd=0.97, tau = 0.001):
         super().__init__(state_shape, action_shape, device, seed, gamma)
         self.name = 'DDPG'
 
@@ -25,11 +24,8 @@ class DDPG(Algorithm):
         self.learning_steps_ddpg = 0
         self.memory_size = memory_size
         self.epoch_ddpg = epoch_ddpg
-        self.clip_eps = clip_eps
         self.lambd = lambd
-        self.coef_ent = coef_ent
         self.tau = tau
-        self.max_grad_norm = max_grad_norm
 
         self.buffer = Buffer(self.memory_size,state_shape,action_shape,device = device)
         self.epsilon_for_priority = 1e-6
@@ -41,26 +37,45 @@ class DDPG(Algorithm):
         self.critic_target = Critic(state_shape,action_shape,hidden1=units_critic[0],hidden2=units_critic[0],init_w=0.3).to(device)
         self.optim_actor = Adam(self.actor.parameters(), lr=lr_actor)
         self.optim_critic = Adam(self.critic.parameters(), lr=lr_critic)
-
+        self.max_episode_num = max_episode_num
 
     def is_update(self, step):
         return step % self.memory_size == 0
 
     def step(self, env, state, t, step):
         t += 1
+        episode_reward = 0
+        correct_count = 0
+        steps = 0
+        done = False
+        #episodic_precision_history = []
+        while not done:
 
-        action = self.exploit(state)
        # action, log_pi = self.explore(state)
-        print(action.size())
+        #print(action.size())
         # action = np.expand_dims(action,axis=1)
         # action = np.transpose(action,(1,0))
-        next_state, reward, done, _ = env.step(action)
-        #mask = False if t == env._max_episode_steps else done
-        print("current reward: ",reward)
-        self.buffer.append(state, action, reward,done, next_state)
+            action = self.exploit(state)
+            next_state, reward, done_, _ = env.step(action)
+            done = done_
+            self.buffer.append(state, action, reward, done, next_state)
+            steps += 1
+            if reward > 0:
+                correct_count += 1
+            episode_reward += reward
 
+        #mask = False if t == env._max_episode_steps else done
+        #print("current reward: ",reward)
         if done:
             t = 0
+            precision = int(correct_count / steps * 100)
+            print(
+                f'{step}/{self.max_episode_num}, precision : {precision:2}%, total_reward:{episode_reward}')
+                # f'{step}/{max_episode_num}, precision : {precision:2}%, total_reward:{episode_reward}, q_loss : {q_loss / steps}')
+            # if self.use_wandb:
+            #     wandb.log({'precision': precision, 'total_reward': episode_reward, 'epsilone': self.epsilon,
+            #                'q_loss': q_loss / steps, 'mean_action': mean_action / steps})
+            #episodic_precision_history.append(precision)
             next_state = env.reset()
 
         return next_state, t
@@ -96,7 +111,7 @@ class DDPG(Algorithm):
         self.eval()
 
     def update_critic(self, states,next_states,actions,next_actions, rewards,writer):
-       # loss_critic = (self.critic(states) - targets).pow_(2).mean()
+        loss_critic = (self.critic(states) - self.critic_target(states)).pow_(2).mean()
         self.critic.zero_grad()
         next_q_values = self.critic_target(next_states,next_actions)
         q_values = self.critic(states,actions)
@@ -105,10 +120,10 @@ class DDPG(Algorithm):
         value_loss = self.criterion(q_values,target_q_batch)
         value_loss.backward()
         self.optim_critic.step()
-
-        # if self.learning_steps_ddpg % self.epoch_ddpg == 0:
-        #     writer.add_scalar(
-        #         'loss/critic', loss_critic.item(), self.learning_steps_ddpg)
+        self.learning_steps_ddpg += 1
+        if self.learning_steps_ddpg % self.epoch_ddpg == 0:
+            writer.add_scalar(
+                'loss/critic', loss_critic.item(), self.learning_steps_ddpg)
 
     def update_actor(self, states, actions, writer):
 

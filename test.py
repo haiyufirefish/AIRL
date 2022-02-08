@@ -97,16 +97,36 @@ import timeit
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-print(device)
-outputs = []
-start = timeit.default_timer()
-for _ in tqdm(range(10)):
-	t1 = torch.randn(10000,10000).to(device)
-	t2 = torch.randn(10000,10000).to(device)
+# print(device)
+# outputs = []
+# start = timeit.default_timer()
+# for _ in tqdm(range(10)):
+# 	t1 = torch.randn(10000,10000).to(device)
+# 	t2 = torch.randn(10000,10000).to(device)
+#
+# 	t = torch.mul(t1, t2).to(device)
+# 	outputs.append(t)
+#
+# stop = timeit.default_timer()
+#
+# print('Time: ', stop - start)
+import pandas as pd
 
-	t = torch.mul(t1, t2).to(device)
-	outputs.append(t)
+item_em = pd.read_csv("./Embedding/item_embedding_1m.csv")
+user_em = pd.read_csv("./Embedding/user_embedding_1m.csv")
 
-stop = timeit.default_timer()
+items_num_list_v = item_em['id'].values.tolist()
+items_num_list = item_em['id'].tolist()
+user_num_list = user_em['id'].tolist()
+print(len(items_num_list_v)) # 3706
+print(len(items_num_list)) # 3706
+print(max(items_num_list_v)) # 3952
+print(max(items_num_list)) # 3952
 
-print('Time: ', stop - start)
+#print(item_em[item_em['id'] == 3952].iloc[0, 1])
+
+# print(min(user_num_list)) # 1
+# print(min(items_num_list)) # 1
+# for i,num in enumerate(items_num_list):
+#     print(i)
+

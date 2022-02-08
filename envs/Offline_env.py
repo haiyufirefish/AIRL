@@ -3,12 +3,12 @@ import torch
 
 class OfflineEnv(object):
 
-    def __init__(self, users_dict, users_history_lens, items_num_list,movies_id_to_movies, state_representation,
+    def __init__(self, users_dict, users_history_lens, items_num_list, state_representation,
                  state_size,embedding_loader, seed = 0,fix_user_id=None):
         np.random.seed(seed)
         self.users_dict = users_dict
         self.users_history_lens = users_history_lens
-        self.items_id_to_name = movies_id_to_movies
+        #self.items_id_to_name = movies_id_to_movies
         self.items_num_list = items_num_list
         # embedding files and state representation
         self.embedding_loader = embedding_loader
@@ -17,7 +17,7 @@ class OfflineEnv(object):
         self.state_size = state_size
 
         self.action_space = (1,100)
-        # 4800++ users
+
         self.available_users = self._generate_available_users()
 
         self.fix_user_id = fix_user_id
@@ -32,6 +32,7 @@ class OfflineEnv(object):
         self.done_count = 3000
         #np.random.seed(0)
         self._max_episode_steps = 10**3
+
 
     def _generate_available_users(self):
         available_users = []
@@ -93,7 +94,7 @@ class OfflineEnv(object):
 
         else:
             if action in self.user_items.keys() and action not in self.recommended_items:
-                reward = self.user_items[action] - 3  # reward
+                reward = int(self.user_items[action]) - 3  # reward if rating bigger than 3 reward plus!
             if reward > 0:
                 self.items = self.items[1:] + [action]
             self.recommended_items.add(action)
@@ -101,22 +102,20 @@ class OfflineEnv(object):
         if len(self.recommended_items) > self.done_count or len(self.recommended_items) >= self.users_history_lens[
             self.user - 1]:
             self.done = True
-        # next_state, reward, done, _
 
         user_eb = self.embedding_loader.get_user_em(id = self.user)
-
         items_eb = self.embedding_loader.get_item_em(item_ids=self.items)
         next_state = self.state_representation([np.expand_dims(items_eb, axis=0), np.expand_dims(user_eb, axis=0)])
         return next_state, reward, self.done, self.recommended_items
 
-    def get_items_names(self, items_ids):
-        items_names = []
-        for id in items_ids:
-            try:
-                items_names.append(self.items_id_to_name[str(id)])
-            except:
-                items_names.append(list(['Not in list']))
-        return items_names
+    # def get_items_names(self, items_ids):
+    #     items_names = []
+    #     for id in items_ids:
+    #         try:
+    #             items_names.append(self.items_id_to_name[str(id)])
+    #         except:
+    #             items_names.append(list(['Not in list']))
+    #     return items_names
 
     def recommend_item(self, action, recommended_items, top_k=False, items_ids=None):
         #
@@ -138,3 +137,13 @@ class OfflineEnv(object):
 
             item_idx = np.argmax(np.dot(items_ebs, action))
             return items_ids[item_idx]
+    # def test_embedding(self):
+    #     #     for id in self.available_users:
+    #     #         print(id)
+    #     #         if id not in self.embedding_loader.user_em['id']:
+    #     #             print("not in")
+    # def test_item_embedding(self):
+    #     for item in self.items_num_list:
+    #         print(item)
+    #         if item not in self.embedding_loader.item_em['id']:
+    #             print("not in !!!!!!!!!!!!!!!!!!!!!!")

@@ -76,11 +76,11 @@ class Embedding_loader:
 
     def check_item_em_(self, id):
 
-        return id in self.item_em['id'] and not self.item_em[self.item_em['id'] == id].empty
+        return not self.item_em[self.item_em['id'] == id].empty
 
     def check_user_em(self, id):
 
-        return id in self.user_em['id'] and not self.user_em[self.user_em["id"] == id].empty
+        return not self.user_em[self.user_em["id"] == id].empty
 
 
 

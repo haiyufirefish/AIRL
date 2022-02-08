@@ -46,13 +46,12 @@ class Trainer:
 
         for step in tqdm(range(1, self.num_steps + 1)):
 
-            print("current epislon: ",step)
+            #print("current epislon: ",step)
             # Pass to the algorithm to update state and episode timestep.
             state, t = self.algo.step(self.env, state, t, step)
-            state = state.float()
+            #state = state.float()
             # Update the algorithm whenever ready.
             if self.algo.is_update(step):
-
                 self.algo.update(self.writer)
 
             # Evaluate regularly.
