@@ -29,6 +29,20 @@
 # print(c.__dict__)
 # print(c1.__dict__)
 # #
+import pandas as pd
+import numpy as np
+import json
+import torch as torch
+import os
+
+from Embedding.embedding_net import EmbeddingNet
+from algo import ALGOS
+from ddpg import DDPG
+from envs.Offline_env import OfflineEnv
+from trainer import Trainer
+from Embedding_loader import Embedding_loader
+from state_representation import AveStateRepresentation
+from utils import addSamplelabel
 
 # c.x = 'foo'
 import torch.nn as nn
@@ -144,17 +158,21 @@ users_history_lens = np.load("./data/user_hist_len_1m.npy",allow_pickle=True).it
 users_dict_original = np.load("./data/user_dict_1m.npy",allow_pickle=True).item()
 users_num = len(users_history_lens)+1
 
-train_users_num = int(users_num * 0.8)
-train_users_dict = {key:value for key,value in [x for x in users_dict_original.items()][0:train_users_num]}
-train_users_history_lens = {key:value for key,value in[x for x in users_history_lens.items()][0:train_users_num]}
-state_size = 10
-available_users = _generate_available_users(train_users_dict,users_history_lens,state_size)
-for _ in range(10000):
-    print("test",_)
-    user = np.random.choice(available_users)
-    user_em[user_em['id'] == user]
-    items = [data[0] for data in train_users_dict[user][:state_size]]
-    if(len(items)!=10):
-        print("err")
-    nx = [item_em[item_em["id"] == id].iloc[0, 1] for id in items]
+# train_users_num = int(users_num * 0.8)
+# train_users_dict = {key:value for key,value in [x for x in users_dict_original.items()][0:train_users_num]}
+# train_users_history_lens = {key:value for key,value in[x for x in users_history_lens.items()][0:train_users_num]}
+# state_size = 10
+# available_users = _generate_available_users(train_users_dict,users_history_lens,state_size)
+# for _ in range(10000):
+#     print("test",_)
+#     user = np.random.choice(available_users)
+#     user_em[user_em['id'] == user]
+#     items = [data[0] for data in train_users_dict[user][:state_size]]
+#     if(len(items)!=10):
+#         print("err")
+#     nx = [item_em[item_em["id"] == id].iloc[0, 1] for id in items]
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+t = torch.randn((3,3)).float().to(device)
+import multiprocessing
 
+print(multiprocessing.cpu_count())

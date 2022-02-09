@@ -1,0 +1,24 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.7.4",
+    "heartbeatAt": "2022-02-09T06:27:25.639764",
+    "startedAt": "2022-02-09T06:27:20.416466",
+    "docker": null,
+    "gpu": "NVIDIA GeForce 940MX",
+    "gpu_count": 1,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "C:/Users/LiHaiyu/PycharmProjects/AIRL/train_rl.py",
+    "codePath": "train_rl.py",
+    "git": {
+        "remote": "git@github.com:/haiyufirefish/AIRL.git",
+        "commit": "5bdc4c35e121eb4e0c5447ebb1665292c1624a44"
+    },
+    "email": "fischshui@gmail.com",
+    "root": "C:/Users/LiHaiyu/PycharmProjects/AIRL",
+    "host": "LAPTOP-BG6R2A6C",
+    "username": "LiHaiyu",
+    "executable": "C:\\Users\\LiHaiyu\\env\\Scripts\\python.exe"
+}

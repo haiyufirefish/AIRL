@@ -82,13 +82,10 @@ if __name__ == '__main__':
     train_users_dict = {key:value for key,value in [x for x in users_dict.items()][0:train_users_num]}
     train_users_history_lens = {key:value for key,value in[x for x in users_history_lens.items()][0:train_users_num]}
 
-    Avg_representation = AveStateRepresentation(100)
-    env = OfflineEnv(train_users_dict, train_users_history_lens,items_num_list , Avg_representation, STATE_SIZE,Emb_loader,seed = SEED)
-    #env = OfflineEnv(train_users_dict, train_users_history_lens,items_num_list ,movies_id_to_movies,Avg_representation, STATE_SIZE,Emb_loader,seed = SEED)
-
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    state = env.reset()
+    Avg_representation = AveStateRepresentation(100, device)
+    env = OfflineEnv(train_users_dict, train_users_history_lens, items_num_list, Avg_representation, STATE_SIZE, Emb_loader,
+                     seed=SEED)
 
     algo = DDPG(state_shape=(1,300),
         action_shape=(1,100),

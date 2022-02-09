@@ -3,11 +3,12 @@ import torch
 
 
 class AveStateRepresentation(nn.Module):
-    def __init__(self,embedding_dim):
+    def __init__(self,embedding_dim,device):
         super().__init__()
         self.dim = embedding_dim #(1,100)->output (1,300)
         self.avgpool1 = nn.AvgPool1d(kernel_size = 10)
         self.flatten = nn.Flatten()
+        self.device = device
 
     def forward(self,x): #x[0]:items [1,10,100] ,x[1]: user [1,100]
 
@@ -23,6 +24,6 @@ class AveStateRepresentation(nn.Module):
 
         concat = torch.cat([user_eb,mul,avg_p],1)
 
-        return self.flatten(concat)
+        return self.flatten(concat).float().to(self.device)
 
 

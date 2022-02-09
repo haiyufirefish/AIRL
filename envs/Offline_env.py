@@ -15,21 +15,20 @@ class OfflineEnv(object):
         self.state_representation = state_representation
         # 10 state size
         self.state_size = state_size
-
         self.action_space = (1,100)
-
         self.available_users = self._generate_available_users()
-
         self.fix_user_id = fix_user_id
 
         self.user = fix_user_id if fix_user_id else np.random.choice(self.available_users)
         self.user_items = {data[0]: data[1] for data in self.users_dict[self.user]}
 
         # self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
-        self.items = self._generate_available_items()
+        #self.items = self._generate_available_items()
+        self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
         self.done = False
         self.recommended_items = set(self.items)
-        self.done_count = 3000
+
+        self.done_count = 400
         #np.random.seed(0)
         self._max_episode_steps = 10**3
 
@@ -59,8 +58,8 @@ class OfflineEnv(object):
     def reset(self):
         self.user = self.fix_user_id if self.fix_user_id else np.random.choice(self.available_users)
         self.user_items = {data[0]: data[1] for data in self.users_dict[self.user]}
-        # self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
-        self.items = self._generate_available_items()
+        self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
+        #self.items = self._generate_available_items()
         self.done = False
 
         self.recommended_items = set(self.items)
@@ -98,9 +97,8 @@ class OfflineEnv(object):
             if reward > 0:
                 self.items = self.items[1:] + [action]
             self.recommended_items.add(action)
-
-        if len(self.recommended_items) > self.done_count or len(self.recommended_items) >= self.users_history_lens[
-            self.user - 1]:
+        if len(self.recommended_items) > self.done_count or len(self.recommended_items) > self.users_history_lens[
+            self.user]:
             self.done = True
 
         user_eb = self.embedding_loader.get_user_em(id = self.user)
@@ -119,22 +117,19 @@ class OfflineEnv(object):
 
     def recommend_item(self, action, recommended_items, top_k=False, items_ids=None):
         #
-
+        action  = action.cpu().clone()
         # print(type(action), "tp")
         if items_ids == None:
                         #3000+ items_num
             items_ids = np.array(list(set(self.items_num_list) - recommended_items))
 
         items_ebs = self.embedding_loader.get_item_em(items_ids)
-        # items_ebs = self.m_embedding_network.get_layer('movie_embedding')(items_ids)
-
         action = np.transpose(action, (1,0))
         #(100,1)
         if top_k:
             item_indice = np.argsort(np.transpose(np.dot(items_ebs, action), (1,0)))[0][-top_k:]
             return items_ids[item_indice]
         else:
-
             item_idx = np.argmax(np.dot(items_ebs, action))
             return items_ids[item_idx]
     # def test_embedding(self):
