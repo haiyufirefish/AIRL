@@ -2,6 +2,7 @@ import numpy as np
 from tree import SumTree, MinTree
 import random
 import torch
+import os
 
 
 class PriorityExperienceReplay(object):
@@ -39,7 +40,7 @@ class PriorityExperienceReplay(object):
         self.beta = 0.4
         self.beta_constant = 0.00001
 
-    def append(self, state, action, reward, next_state, done):
+    def append(self, state, action, reward, done, next_state):
         self.states[self.crt_idx] = state
         self.actions[self.crt_idx] = action
         self.rewards[self.crt_idx] = reward
@@ -96,3 +97,15 @@ class PriorityExperienceReplay(object):
 
     def update_max_priority(self, priority):
         self.max_prioirty = max(self.max_prioirty, priority)
+
+    def save(self, path):
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
+
+        torch.save({
+            'state': self.states.clone().cpu(),
+            'action': self.actions.clone().cpu(),
+            'reward': self.rewards.clone().cpu(),
+            'done': self.dones.clone().cpu(),
+            'next_state': self.next_states.clone().cpu(),
+        }, path)

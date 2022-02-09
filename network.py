@@ -54,7 +54,7 @@ class Critic(nn.Module):
         self.fc2.weight.data = fanin_init(self.fc2.weight.data.size())
         self.fc3.weight.data.uniform_(-init_w, init_w)
 
-    def forward(self, x,a):
+    def forward(self, x, a):
         out = self.fc1(x)
         out = self.relu(out)
         # debug()

@@ -27,6 +27,7 @@ class Buffer(SerializedBuffer):
     def __init__(self, buffer_size, state_shape, action_shape, device):
         self._n = 0
         self._p = 0
+        self.isfull = False
         self.buffer_size = buffer_size
         self.device = device
         '''
@@ -55,8 +56,10 @@ class Buffer(SerializedBuffer):
         self.next_states[self._p].copy_(next_state)
 
         self._p = (self._p + 1) % self.buffer_size
-        self._n = min(self._n + 1, self.buffer_size)
 
+        self._n = min(self._n + 1, self.buffer_size)
+        if (self._n == self.buffer_size):
+            self.isfull = True
     def save(self, path):
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))

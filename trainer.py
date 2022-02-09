@@ -4,12 +4,13 @@ from datetime import timedelta
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from tqdm import tqdm
+import wandb
 
 
 class Trainer:
 
-    def __init__(self, env, env_test, algo, log_dir, seed=0, num_steps=10**5,
-                 eval_interval=10**3, num_eval_episodes=5,num_steps_before_train = 5000):
+    def __init__(self, env, env_test, algo, log_dir, user_num, item_num,use_wandb = False,load = False,load_step = 1000, seed=0, num_steps=10**5,
+                 eval_interval=500, num_eval_episodes=5,num_steps_before_train = 5000):
         super().__init__()
         np.random.seed(seed)
         # Env to collect samples.
@@ -36,6 +37,30 @@ class Trainer:
         self.num_eval_episodes = num_eval_episodes
         self.num_steps_before_train = num_steps_before_train
 
+        self.user_num = user_num
+        self.item_num = item_num
+
+        if load:
+            path = os.path.join(self.model_dir, f'step_{load_step}').replace("\\", "/")
+            self.algo.load_weights(path)
+
+        if use_wandb:
+            wandb.init(project="drr",
+                       entity="diominor",
+                       config={'users_num': self.user_num,
+                               'items_num': self.item_num,
+                               'state_size': self.env.state_size,
+                               'embedding_dim': self.algo.embedding_dim,
+                               'actor_hidden_dim': self.algo.actor_hidden_dim[0],
+                               'actor_learning_rate': self.algo.lr_actor,
+                               'critic_hidden_dim': self.algo.critic_hidden_dim[0],
+                               'critic_learning_rate': self.algo.lr_critic,
+                               'discount_factor': self.algo.gamma,
+                               'tau': self.algo.tau,
+                               'replay_memory_size': self.algo.memory_size,
+                               'batch_size': self.algo.batch_size}
+                               )
+
     def train(self):
         # Time to start training.
         self.start_time = time()
@@ -51,6 +76,7 @@ class Trainer:
             state, t = self.algo.step(self.env, state, t, step)
             #state = state.float()
             # Update the algorithm whenever ready.
+            #print("update: ",self.algo.is_update(step))
             if self.algo.is_update(step):
                 self.algo.update(self.writer)
 
@@ -81,7 +107,7 @@ class Trainer:
             state, t = self.algo.policy.step(self.env, state, t, step)
             #state = state.float()
             if self.algo.is_update(step):
-                print("step: ",step)
+                #print("step: ",step)
                 self.algo.update(self.writer)
             # Evaluate regularly.
             # if step % self.eval_interval == 0:

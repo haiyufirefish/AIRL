@@ -9,26 +9,31 @@ from network import Actor,Critic
 from utils import soft_update,hard_update, disable_gradient
 from replay_buffer import PriorityExperienceReplay
 
+
 class DDPG(Algorithm):
 
-    def __init__(self, state_shape, action_shape, device, seed, gamma=0.995,
-                 memory_size=1000000, lr_actor=3e-4,embedding_dim = 100, batch_size = 32,
+    def __init__(self, state_shape, action_shape, device, seed,  gamma=0.9,
+                 memory_size=1000000, embedding_dim = 100, batch_size = 32,lr_actor=3e-4,update_epoch = 2,
                  lr_critic=3e-4, units_actor=(64, 64), units_critic=(64, 64),
-                 epoch_ddpg = 100,max_episode_num = 8000, lambd=0.97, tau = 0.001):
+                 epoch_ddpg = 50,max_episode_num = 8000,  tau = 0.001):
         super().__init__(state_shape, action_shape, device, seed, gamma)
         self.name = 'DDPG'
-
+        self.update_epoch = update_epoch
         self.embedding_dim = embedding_dim
         self.batch_size = batch_size
         self.criterion = nn.MSELoss()
         self.learning_steps_ddpg = 0
         self.memory_size = memory_size
         self.epoch_ddpg = epoch_ddpg
-        self.lambd = lambd
         self.tau = tau
+        self.actor_hidden_dim = units_actor
+        self.critic_hidden_dim = units_critic
+        self.lr_actor = lr_actor
+        self.lr_critic = lr_critic
 
         self.buffer = Buffer(self.memory_size,state_shape,action_shape,device = device)
-        self.epsilon_for_priority = 1e-6
+        # self.buffer = PriorityExperienceReplay(self.memory_size,state_shape,action_shape,device = device)
+        # self.epsilon_for_priority = 1e-6
 
         self.actor = Actor(state_shape,action_shape,hidden1=units_actor[0],hidden2=units_actor[1],init_w=0.3).to(device)
         self.actor_target = Actor(state_shape,action_shape,hidden1=units_critic[0],hidden2=units_critic[1],init_w=0.3).to(device)
@@ -39,14 +44,16 @@ class DDPG(Algorithm):
         self.optim_critic = Adam(self.critic.parameters(), lr=lr_critic)
         self.max_episode_num = max_episode_num
 
+
+
     def is_update(self, step):
-        return step % self.memory_size == 0
+        return step % self.update_epoch == 0 or self.buffer.isfull
 
     def step(self, env, state, t, step):
         t += 1
         episode_reward = 0
         correct_count = 0
-        steps = 0
+        self.steps = 0
         done = False
         #episodic_precision_history = []
         while not done:
@@ -59,7 +66,7 @@ class DDPG(Algorithm):
             next_state, reward, done_, _ = env.step(action)
             done = done_
             self.buffer.append(state, action, reward, done, next_state)
-            steps += 1
+            self.steps += 1
             if reward > 0:
                 correct_count += 1
             episode_reward += reward
@@ -68,7 +75,7 @@ class DDPG(Algorithm):
         #print("current reward: ",reward)
         if done:
             t = 0
-            precision = int(correct_count / steps * 100)
+            precision = int(correct_count / self.steps * 100)
             print(
                 f'{step}/{self.max_episode_num}, precision : {precision:2}%, total_reward:{episode_reward}')
                 # f'{step}/{max_episode_num}, precision : {precision:2}%, total_reward:{episode_reward}, q_loss : {q_loss / steps}')
@@ -87,6 +94,7 @@ class DDPG(Algorithm):
         self.critic_target.eval()
 
     def update(self, writer):
+        print("update")
         self.learning_steps += 1
         states, actions, rewards, dones, next_states = self.buffer.sample(batch_size= self.batch_size)
 
@@ -111,7 +119,7 @@ class DDPG(Algorithm):
         self.eval()
 
     def update_critic(self, states,next_states,actions,next_actions, rewards,writer):
-        loss_critic = (self.critic(states) - self.critic_target(states)).pow_(2).mean()
+        loss_critic = (self.critic(states,actions) - self.critic_target(states,actions)).pow_(2).mean()
         self.critic.zero_grad()
         next_q_values = self.critic_target(next_states,next_actions)
         q_values = self.critic(states,actions)

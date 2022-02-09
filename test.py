@@ -1,34 +1,34 @@
 
 
 
-class C(object):
-    @property
-    def x(self):
-        """I'm the 'x' property."""
-        print("getter of x called")
-        return self._x
-
-    @x.setter
-    def x(self, value):
-        print("setter of x called")
-        self._x = value
-
-    @x.deleter
-    def x(self):
-        print("deleter of x called")
-        del self._x
-
-c = C()
-
-c.x = 'foo'
-print(c.x)
-c.x = 'hh'
-print(c.x)
-
-c1 = C()
-print(c.__dict__)
-print(c1.__dict__)
+# class C(object):
+#     @property
+#     def x(self):
+#         """I'm the 'x' property."""
+#         print("getter of x called")
+#         return self._x
 #
+#     @x.setter
+#     def x(self, value):
+#         print("setter of x called")
+#         self._x = value
+#
+#     @x.deleter
+#     def x(self):
+#         print("deleter of x called")
+#         del self._x
+#
+# c = C()
+#
+# c.x = 'foo'
+# print(c.x)
+# c.x = 'hh'
+# print(c.x)
+#
+# c1 = C()
+# print(c.__dict__)
+# print(c1.__dict__)
+# #
 
 # c.x = 'foo'
 import torch.nn as nn
@@ -94,7 +94,7 @@ import timeit
 # 	t1.dot(t2)
 # 	outputs.append(t1)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 # print(device)
@@ -112,16 +112,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # print('Time: ', stop - start)
 import pandas as pd
 
-item_em = pd.read_csv("./Embedding/item_embedding_1m.csv")
-user_em = pd.read_csv("./Embedding/user_embedding_1m.csv")
-
-items_num_list_v = item_em['id'].values.tolist()
-items_num_list = item_em['id'].tolist()
-user_num_list = user_em['id'].tolist()
-print(len(items_num_list_v)) # 3706
-print(len(items_num_list)) # 3706
-print(max(items_num_list_v)) # 3952
-print(max(items_num_list)) # 3952
+# item_em = pd.read_csv("./Embedding/item_embedding_1m.csv")
+# user_em = pd.read_csv("./Embedding/user_embedding_1m.csv")
+#
+# items_num_list_v = item_em['id'].values.tolist()
+# items_num_list = item_em['id'].tolist()
+# user_num_list = user_em['id'].tolist()
+# print(len(items_num_list_v)) # 3706
+# print(len(items_num_list)) # 3706
+# print(max(items_num_list_v)) # 3952
+# print(max(items_num_list)) # 3952
 
 #print(item_em[item_em['id'] == 3952].iloc[0, 1])
 
@@ -129,4 +129,32 @@ print(max(items_num_list)) # 3952
 # print(min(items_num_list)) # 1
 # for i,num in enumerate(items_num_list):
 #     print(i)
+import numpy as np
+
+user_em = pd.read_csv("./Embedding/user_embedding_1m.csv")
+item_em = pd.read_csv("./Embedding/item_embedding_1m.csv")
+def _generate_available_users(users_dict,users_history_lens,state_size):
+    available_users = []
+    for i, length in zip(users_dict.keys(), users_history_lens):
+        if length > state_size:
+            available_users.append(i)
+    return available_users
+
+users_history_lens = np.load("./data/user_hist_len_1m.npy",allow_pickle=True).item()
+users_dict_original = np.load("./data/user_dict_1m.npy",allow_pickle=True).item()
+users_num = len(users_history_lens)+1
+
+train_users_num = int(users_num * 0.8)
+train_users_dict = {key:value for key,value in [x for x in users_dict_original.items()][0:train_users_num]}
+train_users_history_lens = {key:value for key,value in[x for x in users_history_lens.items()][0:train_users_num]}
+state_size = 10
+available_users = _generate_available_users(train_users_dict,users_history_lens,state_size)
+for _ in range(10000):
+    print("test",_)
+    user = np.random.choice(available_users)
+    user_em[user_em['id'] == user]
+    items = [data[0] for data in train_users_dict[user][:state_size]]
+    if(len(items)!=10):
+        print("err")
+    nx = [item_em[item_em["id"] == id].iloc[0, 1] for id in items]
 

@@ -15,7 +15,7 @@ from utils import addSamplelabel
 
 
 STATE_SIZE = 10
-SEED = 0
+SEED = 167
 
 
 def create_dataset(ratings, top=None):
@@ -71,7 +71,8 @@ if __name__ == '__main__':
     users_history_lens = np.load("./data/user_hist_len_1m.npy",allow_pickle=True).item()
 
     # here also need some modifications
-    users_num = len(users_dict) + 1
+    users_num = len(users_dict)+1
+    item_num = len(item_em)+1
     items_num_list = item_em['id'].values.tolist()
 
     train_users_num = int(users_num * 0.8)
@@ -91,7 +92,7 @@ if __name__ == '__main__':
 
     algo = DDPG(state_shape=(1,300),
         action_shape=(1,100),
-        memory_size = 100,
+        memory_size = 1000000,
         device=device,seed=SEED)
     # mode = 'ppo'
     # algo = ALGOS[mode](
@@ -104,6 +105,6 @@ if __name__ == '__main__':
     #     #rollout_length= 2048,
     # )
     #
-    recommender = Trainer(env,env,algo,log_dir='./',num_steps = 8000)
+    recommender = Trainer(env,env,algo,log_dir='./',num_steps = 8000,user_num=users_num,item_num=item_num,use_wandb=False)
 
     recommender.train()
