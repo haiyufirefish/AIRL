@@ -55,8 +55,8 @@ if __name__ == '__main__':
     #(n, m), (X, y), _ = create_dataset(ratings)
 ############################################################################################
     #embedding
-    item_em = pd.read_csv("./Embedding/item_embedding_jester.csv")
-    user_em = pd.read_csv("./Embedding/user_embedding_jester.csv")
+    item_em = pd.read_csv("./Embedding/item_embedding_Yahoo_music.csv")
+    user_em = pd.read_csv("./Embedding/user_embedding_Yahoo_music.csv")
 
     item_em['features'] = item_em['features'].map(lambda x: np.array(json.loads(x)))
     user_em['features'] = user_em['features'].map(lambda x: np.array(json.loads(x)))
@@ -67,20 +67,20 @@ if __name__ == '__main__':
     #movies_id_to_movies = movies.set_index('movieId').T.to_dict('list')
     #ratings_df = ratings.applymap(int)
 
-    users_dict = np.load("./data/user_dict_jester.npy",allow_pickle=True).item()
-    users_history_lens = np.load("./data/user_hist_jester.npy",allow_pickle=True).item()
+    users_dict = np.load("./data/user_dict_Yahoo_music_train.npy",allow_pickle=True).item()
+    users_history_lens = np.load("./data/user_hist_Yahoo_music_train.npy",allow_pickle=True).item()
 
     # here also need some modifications
     users_num = len(users_dict)+1
     item_num = len(item_em)+1
     items_num_list = item_em['id'].values.tolist()
 
-    train_users_num = int(users_num * 0.8)
-    train_items_num = len(items_num_list)
+    #train_users_num = int(users_num * 0.8)
+   # train_items_num = len(items_num_list)
     # train_users_dict = {k: users_dict.item().get(k) for k in range(1, train_users_num + 1)}
     # train_users_history_lens = {k:users_history_lens.item().get(k) for k in range(1,train_users_num+1)}
-    train_users_dict = {key:value for key,value in [x for x in users_dict.items()][0:train_users_num]}
-    train_users_history_lens = {key:value for key,value in[x for x in users_history_lens.items()][0:train_users_num]}
+    train_users_dict = {key:value for key,value in [x for x in users_dict.items()]}
+    train_users_history_lens = {key:value for key,value in[x for x in users_history_lens.items()]}
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     Avg_representation = AveStateRepresentation(100, device)
