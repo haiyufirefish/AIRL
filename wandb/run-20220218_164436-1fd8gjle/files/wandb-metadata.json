@@ -1,0 +1,22 @@
+{
+    "os": "Linux-5.11.0-1029-gcp-x86_64-with-glibc2.29",
+    "python": "3.8.10",
+    "heartbeatAt": "2022-02-18T16:44:37.739782",
+    "startedAt": "2022-02-18T16:44:36.723628",
+    "docker": null,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "train_rl.py",
+    "codePath": "train_rl.py",
+    "git": {
+        "remote": "https://github.com/haiyufirefish/AIRL.git",
+        "commit": "19ca80638823574fd09b909d1f0e0e830db5b5b5"
+    },
+    "email": null,
+    "root": "/home/lihaiyu_fisch/AIRL",
+    "host": "instance-1",
+    "username": "lihaiyu_fisch",
+    "executable": "/usr/bin/python3"
+}
