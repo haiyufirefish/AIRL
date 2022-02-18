@@ -3,7 +3,8 @@ import numpy as np
 import json
 from pyspark.sql import SparkSession
 import os
-
+from pyspark.sql import types as T
+from pyspark.ml.recommendation import ALS
 spark = SparkSession \
     .builder \
     .appName("PySpark ALS") \
@@ -11,67 +12,111 @@ spark = SparkSession \
 
 sc = spark.sparkContext
 
+def movie_1m_embedding():
+    customSchema = T.StructType([
+        T.StructField("userId", T.IntegerType(), True),
+        T.StructField("movieId", T.IntegerType(), True),
+        T.StructField("rating", T.FloatType(), True),
+        T.StructField("timestamp", T.LongType(), True),
+    ])
 
-from pyspark.sql import types as T
-from pyspark.ml.recommendation import ALS
+    ROOT_DIR = '../data/'
+    DATA_DIR = os.path.join(ROOT_DIR, 'ml-1m/')
 
-customSchema = T.StructType([
-    T.StructField("userId", T.IntegerType(), True),
-    T.StructField("movieId", T.IntegerType(), True),
-    T.StructField("rating", T.FloatType(), True),
-    T.StructField("timestamp", T.LongType(), True),
-])
+    data = spark.read.csv(
+        r"ratings_embedding_1m.csv",
+        header=True,
+        schema=customSchema
+    )
+
+    data.show(5)
+
+    als = ALS(
+        maxIter=5,
+        regParam=0.01,
+        rank=100,
+        userCol="userId",
+        itemCol="movieId",
+        ratingCol="rating",
+        coldStartStrategy="drop")
+    model = als.fit(data)
+
+    model.userFactors.select("id", "features") \
+        .toPandas() \
+        .to_csv(r"user_embedding_1m.csv", index=False)
+
+    model.itemFactors.select("id", "features") \
+        .toPandas() \
+        .to_csv(r"item_embedding_1m.csv", index=False)
+
+def jester_embedding():
+    customSchema = T.StructType([
+        T.StructField("userId", T.IntegerType(), True),
+        T.StructField("jokeId", T.IntegerType(), True),
+        T.StructField("rating", T.FloatType(), True),
+    ])
+
+    ROOT_DIR = '../data/'
+    DATA_DIR = os.path.join(ROOT_DIR, 'jester_rating_sec.csv')
+
+    data = spark.read.csv(
+        DATA_DIR,
+        header=True,
+        schema=customSchema
+    )
+    # data.show(10)
+    als = ALS(
+        maxIter=5,
+        regParam=0.01,
+        rank=100,
+        userCol="userId",
+        itemCol="jokeId",
+        ratingCol="rating",
+        coldStartStrategy="drop")
+    model = als.fit(data)
+    print('processing fit done')
+    model.userFactors.select("id", "features") \
+        .toPandas() \
+        .to_csv(r"user_embedding_jester.csv", index=False)
+
+    model.itemFactors.select("id", "features") \
+        .toPandas() \
+        .to_csv(r"item_embedding_jester.csv", index=False)
 
 
-def addSamplelabel(ratingsamples):
-    # if rating > 3 label 1 as recommend, 0 as not recommend.
-    ratingsamples['label'] = (ratingsamples['rating']>3).astype(int)
-    return ratingsamples
+def Yahoo_music_embedding():
+    customSchema = T.StructType([
+        T.StructField("userId", T.IntegerType(), True),
+        T.StructField("musicId", T.IntegerType(), True),
+        T.StructField("rating", T.FloatType(), True),
+    ])
 
+    ROOT_DIR = '../data/'
+    DATA_DIR = os.path.join(ROOT_DIR, 'Yahoo_music.csv')
 
-ROOT_DIR = '../data/'
-DATA_DIR = os.path.join(ROOT_DIR, 'ml-1m/')
+    data = spark.read.csv(
+        DATA_DIR,
+        header=True,
+        schema=customSchema
+    )
+    als = ALS(
+        maxIter=5,
+        regParam=0.01,
+        rank=100,
+        userCol="userId",
+        itemCol="musicId",
+        ratingCol="rating",
+        coldStartStrategy="drop")
+    model = als.fit(data)
 
-ratings_list = [i.strip().split("::") for i in open(os.path.join(DATA_DIR,'ratings.dat'), 'r').readlines()]
-users_list = [i.strip().split("::") for i in open(os.path.join(DATA_DIR,'users.dat'), 'r').readlines()]
-movies_list = [i.strip().split("::") for i in open(os.path.join(DATA_DIR,'movies.dat'),encoding='latin-1').readlines()]
-ratings_df = pd.DataFrame(ratings_list, columns = ['userId', 'movieId', 'rating', 'timestamp'], dtype = np.uint32)
-movies_df = pd.DataFrame(movies_list, columns = ['movieId', 'title', 'genres'])
+    model.userFactors.select("id", "features") \
+        .toPandas() \
+        .to_csv(r"user_embedding_Yahoo_music.csv", index=False)
 
-# ratings = pd.read_csv(r"..\data\ratings.csv")
-# movies = pd.read_csv(r"..\data\movies.csv")
-
-# ratings = addSamplelabel(ratings)
-# ratings = ratings[ratings['label'] == 1]
-#ratings_df.to_csv(r"ratings_embedding_1m.csv",index = False)
-
-data = spark.read.csv(
-    r"ratings_embedding_1m.csv",
-    header=True,
-    schema=customSchema
-)
-
-data.show(5)
-
-als = ALS(
-    maxIter=5,
-    regParam=0.01,
-    rank= 100,
-    userCol="userId",
-    itemCol="movieId",
-    ratingCol="rating",
-    coldStartStrategy="drop")
-model = als.fit(data)
-
-# # train
-
-#
-#
-model.userFactors.select("id", "features") \
-           .toPandas() \
-           .to_csv(r"user_embedding_1m.csv", index=False)
-
-model.itemFactors.select("id", "features") \
-           .toPandas() \
-           .to_csv(r"item_embedding_1m.csv", index=False)
-
+    model.itemFactors.select("id", "features") \
+        .toPandas() \
+        .to_csv(r"item_embedding_Yahoo_music.csv", index=False)
+    print("em processing done!")
+if __name__ == '__main__':
+    jester_embedding()
+    #Yahoo_music_embedding()

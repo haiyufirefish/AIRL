@@ -115,14 +115,4 @@ toml==0.10.2
 torch==1.10.0
 tornado==6.1
 tqdm==4.62.3
-traitlets==5.1.1
-typing-extensions==3.7.4.3
-urllib3==1.26.6
 wandb==0.12.6
-wcwidth==0.2.5
-webencodings==0.5.1
-Werkzeug==2.0.2
-widgetsnbextension==3.5.2
-wrapt==1.12.1
-yaspin==2.1.0
-zipp==3.6.0

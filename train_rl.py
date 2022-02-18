@@ -15,7 +15,7 @@ from utils import addSamplelabel
 
 
 STATE_SIZE = 10
-SEED = 167
+SEED = 168
 
 
 def create_dataset(ratings, top=None):
@@ -55,8 +55,8 @@ if __name__ == '__main__':
     #(n, m), (X, y), _ = create_dataset(ratings)
 ############################################################################################
     #embedding
-    item_em = pd.read_csv("./Embedding/item_embedding_1m.csv")
-    user_em = pd.read_csv("./Embedding/user_embedding_1m.csv")
+    item_em = pd.read_csv("./Embedding/item_embedding_jester.csv")
+    user_em = pd.read_csv("./Embedding/user_embedding_jester.csv")
 
     item_em['features'] = item_em['features'].map(lambda x: np.array(json.loads(x)))
     user_em['features'] = user_em['features'].map(lambda x: np.array(json.loads(x)))
@@ -67,8 +67,8 @@ if __name__ == '__main__':
     #movies_id_to_movies = movies.set_index('movieId').T.to_dict('list')
     #ratings_df = ratings.applymap(int)
 
-    users_dict = np.load("./data/user_dict_1m.npy",allow_pickle=True).item()
-    users_history_lens = np.load("./data/user_hist_len_1m.npy",allow_pickle=True).item()
+    users_dict = np.load("./data/user_dict_jester.npy",allow_pickle=True).item()
+    users_history_lens = np.load("./data/user_hist_jester.npy",allow_pickle=True).item()
 
     # here also need some modifications
     users_num = len(users_dict)+1
@@ -102,6 +102,6 @@ if __name__ == '__main__':
     #     #rollout_length= 2048,
     # )
     #
-    recommender = Trainer(env,env,algo,log_dir='./',num_steps = 8000,user_num=users_num,item_num=item_num,use_wandb=False)
+    recommender = Trainer(env,env,algo,log_dir='./',num_steps = 8000,user_num=users_num,item_num=item_num,use_wandb=True)
 
     recommender.train()

@@ -8,14 +8,15 @@ from buffer import RolloutBuffer, Buffer
 from network import Actor,Critic
 from utils import soft_update,hard_update, disable_gradient
 from replay_buffer import PriorityExperienceReplay
+import matplotlib.pyplot as plt
 
 
 class DDPG(Algorithm):
 
     def __init__(self, state_shape, action_shape, device, seed,  gamma=0.9,
-                 memory_size=1000000, embedding_dim = 100, batch_size = 32,lr_actor=3e-4,update_epoch = 2,
+                 memory_size=1000000, embedding_dim = 100, batch_size = 32,lr_actor=3e-4,update_epoch = 300,
                  lr_critic=3e-4, units_actor=(64, 64), units_critic=(64, 64),
-                 epoch_ddpg = 50,max_episode_num = 8000,  tau = 0.001):
+                 epoch_ddpg = 50,max_episode_num = 8000,  tau = 0.001,std = 1.5):
         super().__init__(state_shape, action_shape, device, seed, gamma)
         self.name = 'DDPG'
         self.update_epoch = update_epoch
@@ -44,6 +45,11 @@ class DDPG(Algorithm):
         self.optim_critic = Adam(self.critic.parameters(), lr=lr_critic)
         self.max_episode_num = max_episode_num
 
+        # ε - greedy exploration hyperparameter
+        self.epsilon = 1.
+        self.epsilon_decay = (self.epsilon - 0.1) / 500000
+        self.std = std
+
 
 
     def is_update(self, step):
@@ -55,7 +61,6 @@ class DDPG(Algorithm):
         correct_count = 0
         self.steps = 0
         done = False
-        #episodic_precision_history = []
         while not done:
 
        # action, log_pi = self.explore(state)
@@ -63,6 +68,11 @@ class DDPG(Algorithm):
         # action = np.expand_dims(action,axis=1)
         # action = np.transpose(action,(1,0))
             action = self.exploit(state)
+
+            if self.epsilon > np.random.uniform():
+                self.epsilon -= self.epsilon_decay
+                action += torch.normal(0, self.std, size=action.shape)
+
             next_state, reward, done_, _ = env.step(action)
             done = done_
             self.buffer.append(state, action, reward, done, next_state)
@@ -79,12 +89,13 @@ class DDPG(Algorithm):
             print(
                 f'{step}/{self.max_episode_num}, precision : {precision:2}%, total_reward:{episode_reward}')
                 # f'{step}/{max_episode_num}, precision : {precision:2}%, total_reward:{episode_reward}, q_loss : {q_loss / steps}')
-            # if self.use_wandb:
-            #     wandb.log({'precision': precision, 'total_reward': episode_reward, 'epsilone': self.epsilon,
-            #                'q_loss': q_loss / steps, 'mean_action': mean_action / steps})
-            #episodic_precision_history.append(precision)
+            if self.use_wandb:
+                self.wandb.log({'precision': precision, 'total_reward': episode_reward, 'epsilons': step})
+            # episodic_precision_history.append(precision)
             next_state = env.reset()
-
+        # if (self.steps) % 50 == 0:
+        #     plt.plot(episodic_precision_history)
+        #     plt.savefig('./images/training_precision_%_top_5.png')
         return next_state, t
 
     def eval(self):
@@ -129,9 +140,12 @@ class DDPG(Algorithm):
         value_loss.backward()
         self.optim_critic.step()
         self.learning_steps_ddpg += 1
+        if self.use_wandb:
+            self.wandb.log({'critic_loss': loss_critic.item()})
         if self.learning_steps_ddpg % self.epoch_ddpg == 0:
             writer.add_scalar(
                 'loss/critic', loss_critic.item(), self.learning_steps_ddpg)
+
 
     def update_actor(self, states, actions, writer):
 
@@ -141,6 +155,9 @@ class DDPG(Algorithm):
         policy_loss.backward()
         self.optim_actor.step()
 
+    def set_wandb(self,use_wandb = False,wandb = None):
+        self.use_wandb = use_wandb
+        self.wandb = wandb
 
     def save_models(self, output):
         torch.save(
