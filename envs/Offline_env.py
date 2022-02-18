@@ -28,7 +28,7 @@ class OfflineEnv(object):
         self.done = False
         self.recommended_items = set(self.items)
 
-        self.done_count = 400
+        self.done_count = 20
         #np.random.seed(0)
         self._max_episode_steps = 10**3
 
@@ -97,6 +97,7 @@ class OfflineEnv(object):
             if reward > 0:
                 self.items = self.items[1:] + [action]
             self.recommended_items.add(action)
+
         if len(self.recommended_items) > self.done_count or len(self.recommended_items) > self.users_history_lens[
             self.user]:
             self.done = True

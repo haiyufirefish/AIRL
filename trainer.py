@@ -45,8 +45,9 @@ class Trainer:
             self.algo.load_weights(path)
 
         if use_wandb:
-            wandb.init(project="drr",
-                       entity="diominor",
+            wandb.login()
+            wandb.init(project="AIRL",
+                       # entity="diominor",
                        config={'users_num': self.user_num,
                                'items_num': self.item_num,
                                'state_size': self.env.state_size,
@@ -60,6 +61,7 @@ class Trainer:
                                'replay_memory_size': self.algo.memory_size,
                                'batch_size': self.algo.batch_size}
                                )
+            algo.set_wandb(True,wandb)
 
     def train(self):
         # Time to start training.
@@ -90,6 +92,7 @@ class Trainer:
                     path)
 
         # Wait for the logging to be finished.
+        wandb.finish()
         sleep(10)
 
     def train_imitation(self):
@@ -128,8 +131,6 @@ class Trainer:
             while (not done):
                 action = self.algo.exploit(state)
                 # log_pi = 0
-                action = np.expand_dims(action, axis=1)
-                action = np.transpose(action, (1, 0))
                 next_state, reward, done, _ = self.env_test.step(action)
                 #state, reward, done, _ = self.env_test.step(action)
 

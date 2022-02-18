@@ -174,5 +174,13 @@ users_num = len(users_history_lens)+1
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 t = torch.randn((3,3)).float().to(device)
 import multiprocessing
-
+import random
 print(multiprocessing.cpu_count())
+# p = random.uniform(0.01, 0.80)
+# m = nn.Dropout(p)
+# input = torch.randn(20, 16)
+# output = m(input)
+# print(output)
+input = torch.randn(20,10)
+i = torch.normal(0,1.5,size = input.shape)
+input += i
