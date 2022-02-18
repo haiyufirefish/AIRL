@@ -71,7 +71,7 @@ class DDPG(Algorithm):
 
             if self.epsilon > np.random.uniform():
                 self.epsilon -= self.epsilon_decay
-                action += torch.normal(0, self.std, size=action.shape)
+                action += torch.normal(0, self.std, size=action.shape).to(self.device)
 
             next_state, reward, done_, _ = env.step(action)
             done = done_
