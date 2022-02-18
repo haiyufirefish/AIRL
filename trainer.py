@@ -46,8 +46,8 @@ class Trainer:
 
         if use_wandb:
             wandb.login()
-            wandb.init(project="AIRL",
-                       # entity="diominor",
+            wandb.init(project="AIRL_music",
+                       #entity="diominor",#
                        config={'users_num': self.user_num,
                                'items_num': self.item_num,
                                'state_size': self.env.state_size,
