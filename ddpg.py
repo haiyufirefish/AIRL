@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 class DDPG(Algorithm):
 
     def __init__(self, state_shape, action_shape, device, seed,  gamma=0.9,
-                 memory_size=1000000, embedding_dim = 100, batch_size = 32,lr_actor=3e-4,update_epoch = 30,
+                 memory_size=1000000, embedding_dim = 100, batch_size = 32,lr_actor=3e-4,update_epoch = 15,
                  lr_critic=3e-4, units_actor=(64, 64), units_critic=(64, 64),
                  epoch_ddpg = 50,max_episode_num = 8000,  tau = 0.001,std = 1.5):
         super().__init__(state_shape, action_shape, device, seed, gamma)
