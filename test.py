@@ -48,7 +48,6 @@ from utils import addSamplelabel
 import torch.nn as nn
 import torch
 import pandas as pd
-import numpy as np
 import os
 # m = nn.Linear(300,64)
 # input = torch.randn(1,300)
@@ -176,11 +175,14 @@ t = torch.randn((3,3)).float().to(device)
 import multiprocessing
 import random
 print(multiprocessing.cpu_count())
+import numpy as np
 # p = random.uniform(0.01, 0.80)
 # m = nn.Dropout(p)
 # input = torch.randn(20, 16)
 # output = m(input)
 # print(output)
-input = torch.randn(20,10)
-i = torch.normal(0,1.5,size = input.shape)
-input += i
+# input = torch.randn(20,10)
+# i = torch.normal(0,1.5,size = input.shape)
+# input += i
+users_dict = np.load("./data/user_dict_jester.npy",allow_pickle=True).item()
+#user_items = {data[0]: data[1] for data in users_dict[user]}

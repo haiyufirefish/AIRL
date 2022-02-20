@@ -96,6 +96,6 @@ def data_Jester():
     data = data[data['rating']<99]
     print(data.head(5))
 if __name__ == '__main__':
-    data_Yahoo_music()
-    #data_Jester()
+    #data_Yahoo_music()
+    data_Jester()
 
