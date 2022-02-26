@@ -61,8 +61,8 @@ class Buffer(SerializedBuffer):
         if (self._n == self.buffer_size):
             self.isfull = True
     def save(self, path):
-        if not os.path.exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
+        # if not os.path.exists(os.path.dirname(path)):
+        #     os.makedirs(os.path.dirname(path))
 
         torch.save({
             'state': self.states.clone().cpu(),
@@ -70,7 +70,30 @@ class Buffer(SerializedBuffer):
             'reward': self.rewards.clone().cpu(),
             'done': self.dones.clone().cpu(),
             'next_state': self.next_states.clone().cpu(),
-        }, path)
+        }, '{}/experience_buffer.pt'.format(path))
+        print('save success!')
+
+    def load(self, path):
+        try:
+            dict = torch.load('{}/experience_buffer.pt'.format(path))
+        except FileNotFoundError:
+            print("no such memory file")
+        else:
+            self.states = dict['state'].to(self.device)
+            self.actions = dict['action'].to(self.device)
+            self.rewards = dict['reward'].to(self.device)
+            self.done = dict['done'].to(self.device)
+            self.next_states = dict['next_state'].to(self.device)
+            if(len(self.states) == self.buffer_size):
+                self._p = 0
+            else:
+                self._p = len(self.states)
+
+            self._n = min(self._p, self.buffer_size)
+            if (self._n == self.buffer_size):
+                self.isfull = True
+            print('laod success!')
+
 
 
 class RolloutBuffer:

@@ -144,18 +144,18 @@ import pandas as pd
 #     print(i)
 import numpy as np
 
-user_em = pd.read_csv("./Embedding/user_embedding_1m.csv")
-item_em = pd.read_csv("./Embedding/item_embedding_1m.csv")
-def _generate_available_users(users_dict,users_history_lens,state_size):
-    available_users = []
-    for i, length in zip(users_dict.keys(), users_history_lens):
-        if length > state_size:
-            available_users.append(i)
-    return available_users
-
-users_history_lens = np.load("./data/user_hist_len_1m.npy",allow_pickle=True).item()
-users_dict_original = np.load("./data/user_dict_1m.npy",allow_pickle=True).item()
-users_num = len(users_history_lens)+1
+# user_em = pd.read_csv("./Embedding/user_embedding_1m.csv")
+# item_em = pd.read_csv("./Embedding/item_embedding_1m.csv")
+# def _generate_available_users(users_dict,users_history_lens,state_size):
+#     available_users = []
+#     for i, length in zip(users_dict.keys(), users_history_lens):
+#         if length > state_size:
+#             available_users.append(i)
+#     return available_users
+#
+# users_history_lens = np.load("./data/user_hist_len_1m.npy",allow_pickle=True).item()
+# users_dict_original = np.load("./data/user_dict_1m.npy",allow_pickle=True).item()
+# users_num = len(users_history_lens)+1
 
 # train_users_num = int(users_num * 0.8)
 # train_users_dict = {key:value for key,value in [x for x in users_dict_original.items()][0:train_users_num]}
@@ -181,8 +181,52 @@ import numpy as np
 # input = torch.randn(20, 16)
 # output = m(input)
 # print(output)
-# input = torch.randn(20,10)
+state_shape = (20,10)
+states = torch.empty(
+            (3,*state_shape), dtype=torch.float, device=device)
+t1 = torch.randn(20,10)
+t2 = torch.randn(20,10)
+t3 = torch.randn(20,10)
+states[0] = t1
+states[1] = t2
+states[2] = t3
+
+actions = torch.randn(20,10)
 # i = torch.normal(0,1.5,size = input.shape)
 # input += i
-users_dict = np.load("./data/user_dict_jester.npy",allow_pickle=True).item()
+#users_dict = np.load("./data/user_dict_jester.npy",allow_pickle=True).item()
+
+
+import numpy as np
+
+from sklearn import preprocessing
+
+X = np.array([
+    [ 0,  1],
+    [ 2,  3],
+    [ 4,  5],
+    [ 6,  7],
+    [ 8,  9],
+    [10, 11],
+    [12, 13],
+    [14, 15]
+])
+
+min_max_scaler = preprocessing.MinMaxScaler()
+
+scaled_x = min_max_scaler.fit_transform(X)
+# -3 2
+normalized_x= np.interp(1, (-3, 2), (-1, +1))
+
+print(normalized_x)
 #user_items = {data[0]: data[1] for data in users_dict[user]}
+# path = './tensors.pt'
+# torch.save({
+#             'state': states.clone().cpu(),
+#             'action': actions.clone().cpu()
+#         }, path)
+# dict = torch.load(path)
+# statess = dict['state'].to(device)
+# s = len(statess)
+# action = dict['action']
+

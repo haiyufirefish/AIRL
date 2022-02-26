@@ -9,7 +9,7 @@ import wandb
 
 class Trainer:
 
-    def __init__(self, env, env_test, algo, log_dir, user_num, item_num,use_wandb = False,load = False,load_step = 1000, seed=0, num_steps=10**5,
+    def __init__(self, env, env_test, algo, log_dir, user_num, item_num,use_wandb = False,load = False,load_step = 8000,load_memory = False, seed=0, num_steps=10**5,
                  eval_interval=500, num_eval_episodes=5,num_steps_before_train = 5000):
         super().__init__()
         np.random.seed(seed)
@@ -28,6 +28,7 @@ class Trainer:
         self.summary_dir = os.path.join(log_dir, 'summary')
         self.writer = SummaryWriter(log_dir=self.summary_dir)
         self.model_dir = os.path.join(log_dir, 'model')
+        self.memeory_dir = os.path.join(log_dir,'memory')
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)
 
@@ -43,6 +44,10 @@ class Trainer:
         if load:
             path = os.path.join(self.model_dir, f'step_{load_step}').replace("\\", "/")
             self.algo.load_weights(path)
+
+        if load_memory:
+            memory_path = os.path.join(self.memeory_dir, self.algo.name).replace("\\", "/")
+            self.algo.buffer.load(memory_path)
 
         if use_wandb:
             wandb.login()
@@ -92,6 +97,10 @@ class Trainer:
                     path)
 
         # Wait for the logging to be finished.
+        memory_path = os.path.join(self.memeory_dir,self.algo.name).replace("\\","/")
+        if not os.path.exists(memory_path ):
+            os.makedirs(memory_path)
+        self.algo.buffer.save(memory_path)
         wandb.finish()
         sleep(10)
 

@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from sklearn import preprocessing
 
 class OfflineEnv(object):
 
@@ -16,10 +17,13 @@ class OfflineEnv(object):
         # 10 state size
         self.state_size = state_size
         self.action_space = (1,100)
+
+        self.idx = 0
         self.available_users = self._generate_available_users()
+        self.num_user = len(self.available_users)
         self.fix_user_id = fix_user_id
 
-        self.user = fix_user_id if fix_user_id else np.random.choice(self.available_users)
+        self.user = fix_user_id if fix_user_id else self.next_user()
         self.user_items = {data[0]: data[1] for data in self.users_dict[self.user]}
 
         # self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
@@ -32,6 +36,13 @@ class OfflineEnv(object):
         #np.random.seed(0)
         self._max_episode_steps = 10**3
 
+    def next_user(self):
+
+        if (self.idx + 1) / self.num_user == 0:
+            np.random.shuffle(self.available_users)
+        user = self.available_users[self.idx % self.num_user]
+        self.idx += 1
+        return user
 
     def _generate_available_users(self):
         available_users = []
@@ -39,7 +50,8 @@ class OfflineEnv(object):
         for user, length in self.users_history_lens.items():
             if length > self.state_size and self.embedding_loader.check_user_em(user):
                 available_users.append(user)
-        return available_users
+        return np.random.shuffle(available_users)
+
 
     def _generate_available_items(self):
         available_items = []
@@ -56,7 +68,7 @@ class OfflineEnv(object):
         return available_items
 
     def reset(self):
-        self.user = self.fix_user_id if self.fix_user_id else np.random.choice(self.available_users)
+        self.user = self.next_user()
         self.user_items = {data[0]: data[1] for data in self.users_dict[self.user]}
         self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
         #self.items = self._generate_available_items()
@@ -82,7 +94,9 @@ class OfflineEnv(object):
                 # if action recommended item not in list, append it
                 if act in self.user_items.keys() and act not in self.recommended_items:
                     correctly_recommended.append(act)
-                    rewards.append((self.user_items[act] - 3) / 2)
+                    reward = self.user_items[action] - 3  # reward if rating bigger than 3 reward plus!
+                    reward = np.interp(reward, (-3, 2), (-1, +1))
+                    rewards.append(reward)
                 else:
                     # else, return -0.5 reward, duplicated recommended item
                     rewards.append(-0.5)
@@ -93,9 +107,11 @@ class OfflineEnv(object):
 
         else:
             if action in self.user_items.keys() and action not in self.recommended_items:
-                reward = int(self.user_items[action]) - 3  # reward if rating bigger than 3 reward plus!
+                reward =  self.user_items[action] - 3  # reward if rating bigger than 3 reward plus!
+                reward = np.interp(reward, (-3, 2), (-1, +1))
             if reward > 0:
                 self.items = self.items[1:] + [action]
+                # avoid repeated recommendation
             self.recommended_items.add(action)
 
         if len(self.recommended_items) > self.done_count or len(self.recommended_items) > self.users_history_lens[
