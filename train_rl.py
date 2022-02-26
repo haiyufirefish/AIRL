@@ -103,6 +103,6 @@ if __name__ == '__main__':
     #     #rollout_length= 2048,
     # )
     #
-    recommender = Trainer(env,env,algo,log_dir='./',load=True,load_step = 8000,load_memory=True,num_steps = 8000,user_num=users_num,item_num=item_num,use_wandb=True)
+    recommender = Trainer(env,env,algo,log_dir='./',load=False,load_step = 8000,load_memory=False,num_steps = 80000,user_num=users_num,item_num=item_num,use_wandb=True)
 
     recommender.train()

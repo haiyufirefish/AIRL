@@ -199,26 +199,13 @@ actions = torch.randn(20,10)
 
 import numpy as np
 
-from sklearn import preprocessing
+users_dict = np.load("./data/user_dict_jester.npy",allow_pickle=True).item()
+users_num = len(users_dict)+1
 
-X = np.array([
-    [ 0,  1],
-    [ 2,  3],
-    [ 4,  5],
-    [ 6,  7],
-    [ 8,  9],
-    [10, 11],
-    [12, 13],
-    [14, 15]
-])
 
-min_max_scaler = preprocessing.MinMaxScaler()
-
-scaled_x = min_max_scaler.fit_transform(X)
-# -3 2
-normalized_x= np.interp(1, (-3, 2), (-1, +1))
-
-print(normalized_x)
+train_users_num = int(users_num * 0.8)
+train_users_dict = {key:value for key,value in [x for x in users_dict.items()][0:train_users_num]}
+user_items = {data[0]: data[1] for data in train_users_dict[1]}
 #user_items = {data[0]: data[1] for data in users_dict[user]}
 # path = './tensors.pt'
 # torch.save({

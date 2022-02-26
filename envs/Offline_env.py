@@ -28,11 +28,12 @@ class OfflineEnv(object):
 
         # self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
         #self.items = self._generate_available_items()
+        # select 10 items from dict
         self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
         self.done = False
         self.recommended_items = set(self.items)
 
-        self.done_count = 20
+        self.done_count = 14
         #np.random.seed(0)
         self._max_episode_steps = 10**3
 
@@ -50,7 +51,8 @@ class OfflineEnv(object):
         for user, length in self.users_history_lens.items():
             if length > self.state_size and self.embedding_loader.check_user_em(user):
                 available_users.append(user)
-        return np.random.shuffle(available_users)
+        np.random.shuffle(available_users)
+        return available_users
 
 
     def _generate_available_items(self):
