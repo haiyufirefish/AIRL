@@ -92,7 +92,7 @@ if __name__ == '__main__':
         memory_size = 1000000,
         update_epoch = 10,
         device=device,seed=SEED)
-    # mode = 'ppo'
+    #mode = 'ppo'
     # algo = ALGOS[mode](
     #     #buffer_exp=buffer_exp,
     #     state_shape=(1,300),
