@@ -37,6 +37,8 @@ class OfflineEnv(object):
         #np.random.seed(0)
         self._max_episode_steps = 10**3
 
+        self.state = None
+
     def next_user(self):
 
         if (self.idx + 1) / self.num_user == 0:
@@ -81,7 +83,8 @@ class OfflineEnv(object):
         user_eb = self.embedding_loader.get_user_em(id=self.user)
         items_eb = self.embedding_loader.get_item_em(item_ids=self.items)
 
-        return self.state_representation([np.expand_dims(items_eb, axis=0), np.expand_dims(user_eb, axis=0)])
+        self.state = self.state_representation([np.expand_dims(items_eb, axis=0), np.expand_dims(user_eb, axis=0)])
+        return self.state
 
 
     def step(self, action, top_k=False):
@@ -114,16 +117,20 @@ class OfflineEnv(object):
             if reward > 0:
                 self.items = self.items[1:] + [action]
                 # avoid repeated recommendation
+                self.users_dict
+                self.done = True
+                user_eb = self.embedding_loader.get_user_em(id=self.user)
+                items_eb = self.embedding_loader.get_item_em(item_ids=self.items)
+                next_state = self.state_representation(
+                    [np.expand_dims(items_eb, axis=0), np.expand_dims(user_eb, axis=0)])
+                self.state = next_state
+                return next_state, reward, self.done, self.recommended_items
             self.recommended_items.add(action)
 
-        if len(self.recommended_items) > self.done_count or len(self.recommended_items) > self.users_history_lens[
-            self.user]:
+        if len(self.recommended_items) > self.done_count:
             self.done = True
 
-        user_eb = self.embedding_loader.get_user_em(id = self.user)
-        items_eb = self.embedding_loader.get_item_em(item_ids=self.items)
-        next_state = self.state_representation([np.expand_dims(items_eb, axis=0), np.expand_dims(user_eb, axis=0)])
-        return next_state, reward, self.done, self.recommended_items
+        return self.state, reward, self.done, self.recommended_items
 
     # def get_items_names(self, items_ids):
     #     items_names = []

@@ -75,8 +75,9 @@ class DDPG(Algorithm):
 
             next_state, reward, done_, _ = env.step(action)
 
-            done = done_
             self.buffer.append(state, action, reward, done, next_state)
+            done = done_
+
             self.steps += 1
             if reward > 0:
                 correct_count += 1
@@ -85,6 +86,7 @@ class DDPG(Algorithm):
         #mask = False if t == env._max_episode_steps else done
         #print("current reward: ",reward)
         if done:
+
             t = 0
             precision = int(correct_count / self.steps * 100)
             print(
