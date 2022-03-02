@@ -66,7 +66,7 @@ class Trainer:
                                'replay_memory_size': self.algo.memory_size,
                                'batch_size': self.algo.batch_size}
                                )
-            algo.set_wandb(True,wandb)
+            algo.set_wandb(use_wandb,wandb)
 
     def train(self):
         # Time to start training.
@@ -137,7 +137,7 @@ class Trainer:
             episode_return = 0.0
             done = False
 
-            while (not done):
+            for _ in range(10):
                 action = self.algo.exploit(state)
                 # log_pi = 0
                 next_state, reward, done, _ = self.env_test.step(action)

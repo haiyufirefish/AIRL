@@ -217,3 +217,18 @@ user_items = {data[0]: data[1] for data in train_users_dict[1]}
 # s = len(statess)
 # action = dict['action']
 
+# layer_1 = nn.Linear(5, 2)
+# nn.init.uniform_(layer_1.weight, -1/np.sqrt(5), 1/np.sqrt(5))
+# print("\nWeight after sampling from Uniform Distribution:\n")
+# print(layer_1.weight)
+
+t1 = torch.randn(2,5)
+t2 = t1
+
+m = nn.BatchNorm1d(10)
+m = nn.BatchNorm1d(10, affine=False)
+input = torch.randn(5,10)
+output = m(input)
+print(input[0])
+print("-----")
+print(output[0])

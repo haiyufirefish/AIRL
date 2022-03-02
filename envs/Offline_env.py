@@ -33,7 +33,7 @@ class OfflineEnv(object):
         self.done = False
         self.recommended_items = set(self.items)
 
-        self.done_count = 14
+        # self.done_count = 2
         #np.random.seed(0)
         self._max_episode_steps = 10**3
 
@@ -77,7 +77,6 @@ class OfflineEnv(object):
         self.items = [data[0] for data in self.users_dict[self.user][:self.state_size]]
         #self.items = self._generate_available_items()
         self.done = False
-
         self.recommended_items = set(self.items)
 
         user_eb = self.embedding_loader.get_user_em(id=self.user)
@@ -112,23 +111,21 @@ class OfflineEnv(object):
 
         else:
             if action in self.user_items.keys() and action not in self.recommended_items:
-                reward =  self.user_items[action] - 3  # reward if rating bigger than 3 reward plus!
-                reward = np.interp(reward, (-3, 2), (-1, +1))
+                reward =  (self.user_items[action] - 3)/2  # reward if rating bigger than 3 reward plus!
+                #reward = np.interp(reward, (-3, 2), (-1, +1))
             if reward > 0:
                 self.items = self.items[1:] + [action]
                 # avoid repeated recommendation
-                self.users_dict
                 self.done = True
                 user_eb = self.embedding_loader.get_user_em(id=self.user)
                 items_eb = self.embedding_loader.get_item_em(item_ids=self.items)
                 next_state = self.state_representation(
                     [np.expand_dims(items_eb, axis=0), np.expand_dims(user_eb, axis=0)])
-                self.state = next_state
                 return next_state, reward, self.done, self.recommended_items
             self.recommended_items.add(action)
 
-        if len(self.recommended_items) > self.done_count:
-            self.done = True
+        # if len(self.recommended_items) > self.done_count:
+        #     self.done = True
 
         return self.state, reward, self.done, self.recommended_items
 
@@ -148,6 +145,9 @@ class OfflineEnv(object):
         if items_ids == None:
                         #3000+ items_num
             items_ids = np.array(list(set(self.items_num_list) - recommended_items))
+            # if(len(items_ids) == 0):
+            #
+            #     items_ids = np.array(self.items_num_list)
 
         items_ebs = self.embedding_loader.get_item_em(items_ids)
         action = np.transpose(action, (1,0))

@@ -94,6 +94,9 @@ class Buffer(SerializedBuffer):
                 self.isfull = True
             print('laod success!')
 
+    @property
+    def n(self):
+        return self._n
 
 
 class RolloutBuffer:

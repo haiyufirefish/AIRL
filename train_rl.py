@@ -15,7 +15,7 @@ from utils import addSamplelabel
 
 
 STATE_SIZE = 10
-SEED = 168
+SEED = 88
 
 
 def create_dataset(ratings, top=None):
@@ -89,10 +89,10 @@ if __name__ == '__main__':
 
     algo = DDPG(state_shape=(1,300),
         action_shape=(1,100),
-        units_actor=(128, 128),
-        units_critic=(128, 128),
+        units_actor=(640, 320),
+        units_critic=(640, 320),
         memory_size = 1000000,
-        update_epoch = 10,
+        batch_size= 64,
         device=device,seed=SEED)
     #mode = 'ppo'
     # algo = ALGOS[mode](
@@ -105,6 +105,6 @@ if __name__ == '__main__':
     #     #rollout_length= 2048,
     # )
     #
-    recommender = Trainer(env,env,algo,log_dir='./',load=True,load_step = 80000,load_memory=True,num_steps = 80000,user_num=users_num,item_num=item_num,use_wandb=True)
+    recommender = Trainer(env,env,algo,log_dir='./',load=True,load_step = 35500,load_memory=True,num_steps = 40000,user_num=users_num,item_num=item_num,use_wandb=True)
 
     recommender.train()
