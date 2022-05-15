@@ -1,0 +1,52 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.6
+    framework: keras
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.7.4
+    start_time: 1649195002
+    t:
+      1:
+      - 2
+      - 3
+      3:
+      - 16
+      4: 3.7.4
+      5: 0.12.6
+      8:
+      - 3
+      - 5
+actor_learning_rate:
+  desc: null
+  value: 0.0003
+algo:
+  desc: null
+  value: ppo2
+batch_size:
+  desc: null
+  value: 63
+critic_hidden_dim:
+  desc: null
+  value: 128
+critic_learning_rate:
+  desc: null
+  value: 0.001
+discount_factor:
+  desc: null
+  value: 0.99
+embedding_dim:
+  desc: null
+  value: 100
+items_num:
+  desc: null
+  value: 1683
+state_size:
+  desc: null
+  value: 10
+users_num:
+  desc: null
+  value: 944

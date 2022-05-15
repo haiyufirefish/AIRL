@@ -1,0 +1,1 @@
+{"precision": 15, "cumulative reward": -12.0, "epsilone": 0.6960411999912595, "critic loss": 1.7244356870651245, "mean_action": -0.05625642191618683, "_runtime": 50637, "_timestamp": 1649029038, "_step": 3999, "_wandb": {"runtime": 50635}}

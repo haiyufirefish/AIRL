@@ -1,128 +1,102 @@
-import os
 import numpy as np
-import torch
+import random
+import scipy.signal
 
 
-class SerializedBuffer:
+class Buffer:
+    # Buffer for storing trajectories
+    def __init__(self, observation_dimensions, size, gamma=0.99, lam=0.95):
+        # Buffer initialization
+        self.size = size
+        self.observation_buffer = np.zeros(
+            (size, observation_dimensions), dtype=np.float32
+        )
+        self.action_buffer = np.zeros(size, dtype=np.int32)
+        self.advantage_buffer = np.zeros(size, dtype=np.float32)
+        self.reward_buffer = np.zeros(size, dtype=np.float32)
+        self.return_buffer = np.zeros(size, dtype=np.float32)
+        self.value_buffer = np.zeros(size, dtype=np.float32)
+        self.logprobability_buffer = np.zeros(size, dtype=np.float32)
+        self.gamma, self.lam = gamma, lam
+        self.pointer = 0
+        self.trajectory_start_index = 0
 
-    def __init__(self, path, device):
-        tmp = torch.load(path)
-        self.buffer_size = self._n = tmp['state'].size(0)
-        self.device = device
+    def discounted_cumulative_sums(self, x, discount):
+        # Discounted cumulative sums of vectors for computing rewards-to-go and advantage estimates
+        return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
 
-        self.states = tmp['state'].clone().to(self.device)
-        self.actions = tmp['action'].clone().to(self.device)
-        self.rewards = tmp['reward'].clone().to(self.device)
-        self.dones = tmp['done'].clone().to(self.device)
-        self.next_states = tmp['next_state'].clone().to(self.device)
+    def append(self, observation, action, reward, value, logprobability):
+        # Append one step of agent-environment interaction
+        self.observation_buffer[self.pointer] = observation
+        self.action_buffer[self.pointer] = action
+        self.reward_buffer[self.pointer] = reward
+        self.value_buffer[self.pointer] = value
+        self.logprobability_buffer[self.pointer] = logprobability
+        self.pointer += 1
 
-    def sample(self, batch_size):
-        idxes = np.random.randint(low=0, high=self._n, size=batch_size)
+    def finish_trajectory(self, last_value=0):
+        # Finish the trajectory by computing advantage estimates and rewards-to-go
+        path_slice = slice(self.trajectory_start_index, self.pointer)
+        rewards = np.append(self.reward_buffer[path_slice], last_value)
+        values = np.append(self.value_buffer[path_slice], last_value)
+
+        deltas = rewards[:-1] + self.gamma * values[1:] - values[:-1]
+
+        self.advantage_buffer[path_slice] = self.discounted_cumulative_sums(
+            deltas, self.gamma * self.lam
+        )
+        self.return_buffer[path_slice] = self.discounted_cumulative_sums(
+            rewards, self.gamma
+        )[:-1]
+
+        self.trajectory_start_index = self.pointer
+
+    def get(self,batch_size = 64):
+        # Get all data of the buffer and normalize the advantages
+        # self.pointer, self.trajectory_start_index = 0, 0
+        start = (self.pointer - batch_size) % self.size
+        idxes = slice(start, start + batch_size)
+        advantage_mean, advantage_std = (
+            np.mean(self.advantage_buffer),
+            np.std(self.advantage_buffer),
+        )
+        self.advantage_buffer = (self.advantage_buffer - advantage_mean) / advantage_std
         return (
-            self.states[idxes],
-            self.actions[idxes],
-            self.rewards[idxes],
-            self.dones[idxes],
-            self.next_states[idxes]
+            self.observation_buffer[idxes],
+            self.action_buffer[idxes],
+            self.advantage_buffer[idxes],
+            self.return_buffer[idxes],
+            self.logprobability_buffer[idxes],
         )
 
 
-class Buffer(SerializedBuffer):
+class ReplayBuffer(object):
 
-    def __init__(self, buffer_size, state_shape, action_shape, device):
-        self._n = 0
-        self._p = 0
-        self.buffer_size = buffer_size
-        self.device = device
+        '''
+        apply PER
+        '''
 
-        self.states = torch.empty(
-            (buffer_size, *state_shape), dtype=torch.float, device=device)
-        self.actions = torch.empty(
-            (buffer_size, *action_shape), dtype=torch.float, device=device)
-        self.rewards = torch.empty(
-            (buffer_size, 1), dtype=torch.float, device=device)
-        self.dones = torch.empty(
-            (buffer_size, 1), dtype=torch.float, device=device)
-        self.next_states = torch.empty(
-            (buffer_size, *state_shape), dtype=torch.float, device=device)
+        def __init__(self, buffer_size, embedding_dim):
+            self.buffer_size = buffer_size
+            self.crt_idx = 0
+            self.is_full = False
 
-    def append(self, state, action, reward, done, next_state):
-        self.states[self._p].copy_(torch.from_numpy(state))
-        self.actions[self._p].copy_(torch.from_numpy(action))
-        self.rewards[self._p] = float(reward)
-        self.dones[self._p] = float(done)
-        self.next_states[self._p].copy_(torch.from_numpy(next_state))
+            '''
+                state : (300,), 
+                next_state : (300,) 
+                actions : (100,), 
+                rewards : (1,), 
+                dones : (1,)
+            '''
+            self.states = np.zeros((buffer_size, 3 * embedding_dim), dtype=np.float32)
+            self.actions = np.zeros((buffer_size, embedding_dim), dtype=np.float32)
+            self.dones = np.zeros(buffer_size, np.bool)
 
-        self._p = (self._p + 1) % self.buffer_size
-        self._n = min(self._n + 1, self.buffer_size)
+        def append(self, state, action, done):
+            self.states[self.crt_idx] = state
+            self.actions[self.crt_idx] = action
+            self.dones[self.crt_idx] = done
 
-    def save(self, path):
-        if not os.path.exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
-
-        torch.save({
-            'state': self.states.clone().cpu(),
-            'action': self.actions.clone().cpu(),
-            'reward': self.rewards.clone().cpu(),
-            'done': self.dones.clone().cpu(),
-            'next_state': self.next_states.clone().cpu(),
-        }, path)
-
-
-class RolloutBuffer:
-
-    def __init__(self, buffer_size, state_shape, action_shape, device, mix=1):
-        self._n = 0
-        self._p = 0
-        self.mix = mix
-        self.buffer_size = buffer_size
-        self.total_size = mix * buffer_size
-
-        self.states = torch.empty(
-            (self.total_size, *state_shape), dtype=torch.float, device=device)
-        self.actions = torch.empty(
-            (self.total_size, *action_shape), dtype=torch.float, device=device)
-        self.rewards = torch.empty(
-            (self.total_size, 1), dtype=torch.float, device=device)
-        self.dones = torch.empty(
-            (self.total_size, 1), dtype=torch.float, device=device)
-        self.log_pis = torch.empty(
-            (self.total_size, 1), dtype=torch.float, device=device)
-        self.next_states = torch.empty(
-            (self.total_size, *state_shape), dtype=torch.float, device=device)
-
-    def append(self, state, action, reward, done, log_pi, next_state):
-        self.states[self._p].copy_(torch.from_numpy(state))
-        self.actions[self._p].copy_(torch.from_numpy(action))
-        self.rewards[self._p] = float(reward)
-        self.dones[self._p] = float(done)
-        self.log_pis[self._p] = float(log_pi)
-        self.next_states[self._p].copy_(torch.from_numpy(next_state))
-
-        self._p = (self._p + 1) % self.total_size
-        self._n = min(self._n + 1, self.total_size)
-
-    def get(self):
-        assert self._p % self.buffer_size == 0
-        start = (self._p - self.buffer_size) % self.total_size
-        idxes = slice(start, start + self.buffer_size)
-        return (
-            self.states[idxes],
-            self.actions[idxes],
-            self.rewards[idxes],
-            self.dones[idxes],
-            self.log_pis[idxes],
-            self.next_states[idxes]
-        )
-
-    def sample(self, batch_size):
-        assert self._p % self.buffer_size == 0
-        idxes = np.random.randint(low=0, high=self._n, size=batch_size)
-        return (
-            self.states[idxes],
-            self.actions[idxes],
-            self.rewards[idxes],
-            self.dones[idxes],
-            self.log_pis[idxes],
-            self.next_states[idxes]
-        )
+            self.crt_idx = (self.crt_idx + 1) % self.buffer_size
+            if self.crt_idx == 0:
+                self.is_full = True

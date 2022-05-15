@@ -1,65 +1,22 @@
-import torch
-from torch import nn
+import tensorflow as tf
 
-from .utils import build_mlp
+# state Representation
+class DRRAveStateRepresentation(tf.keras.Model):
+    def __init__(self, embedding_dim):
+        super(DRRAveStateRepresentation, self).__init__()
+        self.embedding_dim = embedding_dim
+        self.wav = tf.keras.layers.Conv1D(1, 1, 1)
+        self.concat = tf.keras.layers.Concatenate()
+        self.flatten = tf.keras.layers.Flatten()
 
+    def call(self, x):
+        #  1:item,0:user (x,100)
+        items_eb = tf.transpose(x[1], perm=(0, 2, 1))/self.embedding_dim
+        wav = self.wav(items_eb)
+        wav = tf.transpose(wav, perm=(0, 2, 1))
+        wav = tf.squeeze(wav, axis=1)
+        user_wav = tf.keras.layers.multiply([x[0], wav])
 
-class StateFunction(nn.Module):
-
-    def __init__(self, state_shape, hidden_units=(64, 64),
-                 hidden_activation=nn.Tanh()):
-        super().__init__()
-
-        self.net = build_mlp(
-            input_dim=state_shape[0],
-            output_dim=1,
-            hidden_units=hidden_units,
-            hidden_activation=hidden_activation
-        )
-
-    def forward(self, states):
-        return self.net(states)
-
-
-class StateActionFunction(nn.Module):
-
-    def __init__(self, state_shape, action_shape, hidden_units=(100, 100),
-                 hidden_activation=nn.Tanh()):
-        super().__init__()
-
-        self.net = build_mlp(
-            input_dim=state_shape[0] + action_shape[0],
-            output_dim=1,
-            hidden_units=hidden_units,
-            hidden_activation=hidden_activation
-        )
-
-    def forward(self, states, actions):
-        return self.net(torch.cat([states, actions], dim=-1))
-
-
-class TwinnedStateActionFunction(nn.Module):
-
-    def __init__(self, state_shape, action_shape, hidden_units=(256, 256),
-                 hidden_activation=nn.ReLU(inplace=True)):
-        super().__init__()
-
-        self.net1 = build_mlp(
-            input_dim=state_shape[0] + action_shape[0],
-            output_dim=1,
-            hidden_units=hidden_units,
-            hidden_activation=hidden_activation
-        )
-        self.net2 = build_mlp(
-            input_dim=state_shape[0] + action_shape[0],
-            output_dim=1,
-            hidden_units=hidden_units,
-            hidden_activation=hidden_activation
-        )
-
-    def forward(self, states, actions):
-        xs = torch.cat([states, actions], dim=-1)
-        return self.net1(xs), self.net2(xs)
-
-    def q1(self, states, actions):
-        return self.net1(torch.cat([states, actions], dim=-1))
+        concat = self.concat([x[0], user_wav, wav])
+        # (1,300)
+        return self.flatten(concat)

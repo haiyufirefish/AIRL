@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html class="no-js" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <base href="."/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>Category | RecSys</title>
+    <meta name="description" content=""/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="theme-color" content="#ffffff"/>
+    <link type="text/plain" rel="author"/>
+    <link href="./css/style.css" rel="stylesheet"/>
+    <link rel="shortcut icon" href="./resources/logo.ico">
+    <script src="./js/jquery-3.2.1.min.js"></script>
+    <script src="./js/recsys.js"></script>
+    <style>
+        .movie-row .movie-row-bounds .movie-row-item{
+            display: block;
+        }
+
+        .movie-card-md1{
+            margin:0 5px 15px 0
+        }
+    </style>
+</head>
+<body id="root">
+<div>
+    <header class="base-compact-header">
+
+    </header>
+    <div class="base-compact-header-spacer"></div>
+    <div class="ml4-container" style="min-height: 920px;">
+        <div id="main-container">
+            <div class="frontpage" id="recPage">
+                <div class="frontpage-section-top">
+                    <div class="row">
+                        <div class="col-md-6">
+<!--                            <h1>give feedback</h1>-->
+<!--                            <div class="jumbotron ml4-jumbotron" style="padding-top: 0;">-->
+<!--                                <p> To collect your feedback, please create issue on our project github homepage-->
+<!--                                    <a href="https://github.com/wzhe06/SparrowRecSys/issues"-->
+<!--                                       target="_blank">Sparrow RecSys Github</a>.</p>-->
+<!--                                <p>-->
+<!--                                    <button class="btn btn-primary btn-lg"-->
+<!--                                            onclick="location.href='https://github.com/wzhe06/SparrowRecSys/issues';">-->
+<!--                                        give feedback-->
+<!--                                    </button>-->
+<!--                                </p>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script type="text/javascript">
+function getQueryString(name, windowLocation) {
+    var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+    var r = windowLocation.search.substr(1).match(reg);
+    if (r != null) {
+        return unescape(r[2]);
+    }
+    return null;
+};
+
+
+var windowLocation = window.location;
+var type = getQueryString("type",windowLocation);
+var value = getQueryString("value",windowLocation);
+
+var baseUrl = windowLocation.protocol + "//" + windowLocation.host + "/"
+if(type == "genre"){
+    addGenreRow('#recPage', value, value.toLowerCase() + '-collection', 100, baseUrl);
+}
+
+</script>
+</html>

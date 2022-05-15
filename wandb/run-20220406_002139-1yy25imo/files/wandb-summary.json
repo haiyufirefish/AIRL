@@ -1,0 +1,1 @@
+{"precision": 39, "cumulative reward": 4.0, "epsilone": 7999, "Actor Loss": -0.01927394028626987, "Critic Loss": 0.06511660334828136, "_runtime": 27956, "_timestamp": 1649225256, "_step": 7999, "_wandb": {"runtime": 27954}}

@@ -1,0 +1,1 @@
+{"precision": 36, "total_reward": 5.0, "epsilone": 0.4659867999856931, "q_loss": 6.414813833544031e-05, "mean_action": -0.008148904405534266, "_runtime": 101530, "_timestamp": 1647381112, "_step": 7999, "_wandb": {"runtime": 101529}}
